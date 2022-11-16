@@ -13,6 +13,7 @@ config = {'backbone_type': 'ResNetFPN',
             'fine': {'d_model': 128, 'd_ffn': 128, 'nhead': 8, 'layer_names': ['self','cross'], 'attention': 'linear'}}
 
 
+_config = {'loftr': {'backbone_type': 'ResNetFPN', 'resolution': (...), 'fine_window_size': 5, 'fine_concat_coarse_feat': True, 'resnetfpn': {...}, 'coarse': {...}, 'match_coarse': {...}, 'fine': {...}, 'loss': {...}}, 'dataset': {'trainval_data_source': 'ScanNet', 'train_data_root': 'data/scannet/train', 'train_pose_root': None, 'train_npz_root': 'data/scannet/index/s...data/train', 'train_list_path': 'data/scannet/index/s...et_all.txt', 'train_intrinsic_path': 'data/scannet/index/i...insics.npz', 'val_data_root': 'data/scannet/test', 'val_pose_root': None, 'val_npz_root': 'assets/scannet_test_1500', ...}, 'trainer': {'world_size': 4, 'canonical_bs': 64, 'canonical_lr': 0.006, 'scaling': 0.0625, 'find_lr': False, 'optimizer': 'adamw', 'true_lr': 0.000375, 'adam_decay': 0.0, 'adamw_decay': 0.1, ...}}
 
 
 from LoFTR_TF import LoFTR

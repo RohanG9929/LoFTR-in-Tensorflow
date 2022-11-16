@@ -134,13 +134,15 @@ def spvs_coarse(data, config):
 
 
 def compute_supervision_coarse(data, config):
-    assert len(set(data['dataset_name'])) == 1, "Do not support mixed datasets training!"
-    data_source = data['dataset_name'][0]
-    if data_source.lower() in ['scannet', 'megadepth']:
-        data = spvs_coarse(data, config)
-    else:
-        raise ValueError(f'Unknown data source: {data_source}')
-    return data
+    data = spvs_coarse(data, config)
+
+    # assert len(set(data['dataset_name'])) == 1, "Do not support mixed datasets training!"
+    # data_source = data['dataset_name'][0]
+    # if data_source.lower() in ['scannet', 'megadepth']:
+    #     data = spvs_coarse(data, config)
+    # else:
+    #     raise ValueError(f'Unknown data source: {data_source}')
+    # return data
 
 
 ##############  ↓  Fine-Level supervision  ↓  ##############
@@ -170,9 +172,11 @@ def spvs_fine(data, config):
 
 
 def compute_supervision_fine(data, config):
-    data_source = data['dataset_name'][0]
-    if data_source.lower() in ['scannet', 'megadepth']:
-        data = spvs_fine(data, config)
-    else:
-        raise NotImplementedError
-    return data
+    data = spvs_fine(data, config)
+
+    # data_source = data['dataset_name'][0]
+    # if data_source.lower() in ['scannet', 'megadepth']:
+    #     data = spvs_fine(data, config)
+    # else:
+    #     raise NotImplementedError
+    # return data
