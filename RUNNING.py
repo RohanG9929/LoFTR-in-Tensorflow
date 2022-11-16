@@ -25,8 +25,8 @@ print(os.getcwd())
 
 
 #loading in the images for the current batch
-img0_pth = "./Working/scene0738_00_frame-000885.jpg"
-img1_pth = "./Working/scene0738_00_frame-001065.jpg"
+img0_pth = "./scene0738_00_frame-000885.jpg"
+img1_pth = "./scene0738_00_frame-001065.jpg"
 img0_raw = cv.imread(img0_pth, cv.IMREAD_GRAYSCALE)
 img1_raw = cv.imread(img1_pth, cv.IMREAD_GRAYSCALE)
 img0_raw = cv.resize(img0_raw, (640, 480))
