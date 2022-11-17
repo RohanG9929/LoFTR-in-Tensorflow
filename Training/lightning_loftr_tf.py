@@ -41,7 +41,7 @@ from LoFTR_TF import LoFTR
 
 optimizer_1=tf.keras.optimizer.Adam(learning_rate=0.001)
 
-matcher=LoFTR(config=_config['loftr']) # to be fixed
+matcher=LoFTR(config=_config['loftr'], training = True) # to be fixed
 loss=LoFTRLoss(_config) # to be fixed
 
 @tf.function
@@ -61,7 +61,7 @@ def train_step(data):
     return data['loss']
 
 epochs=100
-batches=64
+batches=64##TODO: Make dataset batches
 loss_all=[]
 
 for epoch in range(epochs):

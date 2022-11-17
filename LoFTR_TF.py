@@ -27,7 +27,7 @@ class LoFTR(tf.keras.Model):
         self.loftr_fine = LocalFeatureTransformer(config["fine"])
         self.fine_matching = FineMatching()
 
-    def call(self, data):
+    def call(self, data, training=False):
         """ 
         Update:
             data (dict): {
@@ -82,7 +82,7 @@ class LoFTR(tf.keras.Model):
         ################################################################################################################
         # 3. Match coarse-level
         ################################################################################################################
-        data = self.coarse_matching(feat_c0, feat_c1, data, mask_c0=mask_c0, mask_c1=mask_c1)
+        data = self.coarse_matching(feat_c0, feat_c1, data, mask_c0=mask_c0, mask_c1=mask_c1, training=training)
 
         ################################################################################################################
         # 4. Fine-level refinement
@@ -94,7 +94,7 @@ class LoFTR(tf.keras.Model):
         ################################################################################################################
         # 5. Match fine-level
         ################################################################################################################
-        data = self.fine_matching(feat_f0_unfold, feat_f1_unfold, data)
+        data = self.fine_matching(feat_f0_unfold, feat_f1_unfold, data, training = training)
 
         return data
 

@@ -3,7 +3,6 @@ import cv2
 import numpy as np
 from collections import OrderedDict
 from loguru import logger
-from kornia.geometry.epipolar import numeric
 
 
 # --- METRICS ---
