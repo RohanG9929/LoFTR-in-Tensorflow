@@ -62,6 +62,10 @@ def train_step(data):
         modelData = matcher(superVisionData, training = True)
         fineSuperData = compute_supervision_fine(modelData,config)
         lossData = loss(fineSuperData)
+
+        #TODO: Fix Module 3,4,5 
+        #TODO: Debug loss and make sure there are no errors
+        #TODO: Make sure training loop works
     
     grads = tape.gradient(lossData['loss'], matcher.trainable_weights) # to be fixed
     optimizer_1.apply_gradients(zip(grads, matcher.trainable_weights))
