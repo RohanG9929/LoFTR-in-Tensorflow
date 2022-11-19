@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-# import tensorflow as tf
+import tensorflow as tf
 import scipy
 from scipy.io import loadmat
 import os
@@ -85,39 +85,55 @@ def read_data(path_imgs,path_depth):#,transf,intrinsics,no_of_pairs=5):
         orderedImages.append(""+path_imgs+"/"+str(num)+".jpg")
 
     data={}
-    for image in list(orderedImages):
+
+    for idx, image in enumerate(list(orderedImages)):
         image_num=image.split('.')[1].split('/')[-1]
-        currImage=cv2.imread(image)
+        currImage=cv2.imread(image,0)
+        currImage = np.reshape(currImage,(1,currImage.shape[0],currImage.shape[1]))
         for d in list(depth):
             if (d.split('.')[1].split('/')[-1]==image_num):
                 # read depth and increment count
                 myDepth=loadmat(d)['depthOut']
                 count+=1
                 if count==1:
-                    data['image0']=currImage
-                    data['depth0']=myDepth
-                    data['T0_to_1'] = giveT()[0]
-                    data['T1_to_0'] = giveT()[1]
-                    data['K_0'] = giveK()
-                    data['K_1'] = giveK()
+                    if idx==0:
+                        data['image0']= tf.convert_to_tensor(currImage, dtype=tf.float32)[None] / 255
+                        data['depth0']= tf.reshape(tf.convert_to_tensor(myDepth, dtype=tf.float32),[1,myDepth.shape[0],myDepth.shape[1]])
+
+                        
+                        data['T_0to1'] = tf.reshape(tf.convert_to_tensor(giveT()[0]),[1,giveT()[0].shape[0],giveT()[0].shape[1]])
+                        data['T_1to0'] = tf.reshape(tf.convert_to_tensor(giveT()[1]),[1,giveT()[1].shape[0],giveT()[1].shape[1]])
+                        data['K0'] = tf.reshape(tf.convert_to_tensor(giveK()),[1,giveK().shape[0],giveK().shape[1]])
+                        data['K1'] = tf.reshape(tf.convert_to_tensor(giveK()),[1,giveK().shape[0],giveK().shape[1]])
+                    else:
+                        data['image0'] = tf.concat((data['image0'],tf.convert_to_tensor(currImage, dtype=tf.float32)[None] / 255),axis=0)
+                        data['depth0'] = tf.concat((data['depth0'],tf.reshape(tf.convert_to_tensor(myDepth, dtype=tf.float32),[1,myDepth.shape[0],myDepth.shape[1]])),axis=0)
+                        data['T_0to1'] = tf.concat((data['T_0to1'],tf.reshape(tf.convert_to_tensor(giveT()[0]),[1,giveT()[0].shape[0],giveT()[0].shape[1]])),axis=0)
+                        data['T_1to0'] = tf.concat((data['T_1to0'],tf.reshape(tf.convert_to_tensor(giveT()[1]),[1,giveT()[1].shape[0],giveT()[1].shape[1]])),axis=0)
+                        data['K0'] = tf.concat((data['K0'],tf.reshape(tf.convert_to_tensor(giveK()),[1,giveK().shape[0],giveK().shape[1]])),axis=0)
+                        data['K1'] = tf.concat((data['K1'],tf.reshape(tf.convert_to_tensor(giveK()),[1,giveK().shape[0],giveK().shape[1]])),axis=0)
+
                     break
                 elif count==2:
-                    data['image1']=currImage
-                    data['depth1']=myDepth
+                    if idx==1:
+                        data['image1']= tf.convert_to_tensor(currImage, dtype=tf.float32)[None] / 255
+                        data['depth1']= tf.reshape(tf.convert_to_tensor(myDepth, dtype=tf.float32),[1,myDepth.shape[0],myDepth.shape[1]])
+                    else:
+                        data['image1'] = tf.concat((data['image1'],tf.convert_to_tensor(currImage, dtype=tf.float32)[None] / 255),axis=0)
+                        data['depth1'] = tf.concat((data['depth1'],tf.reshape(tf.convert_to_tensor(myDepth, dtype=tf.float32),[1,myDepth.shape[0],myDepth.shape[1]])),axis=0)
+                    # 
+                    
                     count=0
-                    batches.append(data)
-                    data={}
-                    break
 
-
+    batches.append(data)
     return batches
             
                         
 
  
-batches = read_data('./Training/Ready','./Training/Ready')
+# batches = read_data('./Training/Ready','./Training/Ready')
     
-print("DONE")
+print("Done Loading Data")
     # ################## camera extrinisics###############
     # T_left_to_right=np.zeros((4,4))
     # T_right_to_left=np.zeros((4,4))

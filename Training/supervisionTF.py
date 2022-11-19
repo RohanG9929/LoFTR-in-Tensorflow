@@ -23,7 +23,7 @@ def create_mesh(height: int,width: int,normalized_coordinates: bool = True):
         ys = (ys / (height - 1) - 0.5) * 2
     # generate grid by stacking coordinates
 
-    base_grid = tf.stack(tf.meshgrid([xs, ys], indexing="ij"), axis=-1, name='stack')  # WxHx2
+    base_grid = tf.stack(tf.meshgrid(xs, ys, indexing="ij"), axis=-1, name='stack')  # WxHx2
 
     return  tf.expand_dims(tf.transpose(base_grid,[1,0,2]), axis=0)
 
@@ -57,8 +57,8 @@ def spvs_coarse(data, config):
     """
     # 1. misc
     # device = data['image0'].device
-    N, _, H0, W0 = data['image0'].shape
-    _, _, H1, W1 = data['image1'].shape
+    N,_, H0, W0 = data['image0'].shape
+    _,_, H1, W1 = data['image1'].shape
     scale = config['LOFTR']['RESOLUTION'][0]
     scale0 = scale * data['scale0'][:, None] if 'scale0' in data else scale
     scale1 = scale * data['scale1'][:, None] if 'scale0' in data else scale
@@ -66,9 +66,14 @@ def spvs_coarse(data, config):
 
     # 2. warp grids
     # create kpts in meshgrid and resize them to image resolution
-    grid_pt0_c = create_mesh(h0, w0, False).reshape(1, h0*w0, 2).repeat(N, 1, 1)    # [N, hw, 2]
+    grid_pt0_c = create_mesh(h0, w0, False)
+    grid_pt0_c = tf.reshape(grid_pt0_c,[1, h0*w0, 2])
+    grid_pt0_c = tf.repeat(grid_pt0_c,N,axis=0)    # [N, hw, 2]
+
     grid_pt0_i = scale0 * grid_pt0_c
-    grid_pt1_c = create_mesh(h1, w1, False).reshape(1, h1*w1, 2).repeat(N, 1, 1)
+    grid_pt1_c = create_mesh(h1, w1, False)
+    grid_pt1_c = tf.reshape(grid_pt1_c,[1, h1*w1, 2])
+    grid_pt1_c = tf.repeat(grid_pt1_c,N,axis=0)
     grid_pt1_i = scale1 * grid_pt1_c
 
     # mask padded region to (0, 0), so no need to manually mask conf_matrix_gt
@@ -85,30 +90,49 @@ def spvs_coarse(data, config):
     w_pt1_c = w_pt1_i / scale0
 
     # 3. check if mutual nearest neighbor
-    w_pt0_c_round = w_pt0_c[:, :, :].round().long()
+    w_pt0_c_round = tf.cast(tf.math.round(w_pt0_c[:, :, :]),dtype=tf.float32)
+    
     nearest_index1 = w_pt0_c_round[..., 0] + w_pt0_c_round[..., 1] * w1
-    w_pt1_c_round = w_pt1_c[:, :, :].round().long()
+    w_pt1_c_round = tf.cast(tf.math.round(w_pt1_c[:, :, :]),dtype=tf.float32)
     nearest_index0 = w_pt1_c_round[..., 0] + w_pt1_c_round[..., 1] * w0
 
     # corner case: out of boundary
     def out_bound_mask(pt, w, h):
-        return (pt[..., 0] < 0) + (pt[..., 0] >= w) + (pt[..., 1] < 0) + (pt[..., 1] >= h)
-    nearest_index1[out_bound_mask(w_pt0_c_round, w1, h1)] = 0
-    nearest_index0[out_bound_mask(w_pt1_c_round, w0, h0)] = 0
+        return tf.convert_to_tensor((pt[..., 0] < 0).numpy() + (pt[..., 0] >= w).numpy() + (pt[..., 1] < 0).numpy() + (pt[..., 1] >= h).numpy())
+  
+    nearest_index1 = nearest_index1.numpy()
+    nearest_index1[out_bound_mask(w_pt0_c_round, w1, h1).numpy()] = 0
+    nearest_index1 = tf.convert_to_tensor(nearest_index1)
 
-    loop_back = tf.stack([nearest_index0[_b][_i] for _b, _i in enumerate(nearest_index1)], axis=0)
-    correct_0to1 = loop_back == tf.range(h0*w0)[None].repeat(N, 1)
+    nearest_index0 = nearest_index0.numpy()
+    nearest_index0[out_bound_mask(w_pt1_c_round, w0, h0).numpy()] = 0
+    nearest_index1 = tf.convert_to_tensor(nearest_index1)
+
+    import numpy as np
+    loop_back = np.zeros((nearest_index1.shape[0],4800))
+    for _b, _i in enumerate(nearest_index1):
+        for a in range(_i.shape[0]):
+                loop_back[_b,a] = nearest_index0[_b][a]
+    loop_back = tf.convert_to_tensor(loop_back,dtype=tf.float32) # (N, L)
+
+    # loop_back = tf.stack([nearest_index0[_b][_i] for _b, _i in enumerate(nearest_index1)], axis=0)
+    correct_0to1 = loop_back == tf.cast(tf.repeat(tf.range(h0*w0)[None],N,axis=0),tf.float32)   
+    correct_0to1 = correct_0to1.numpy()
     correct_0to1[:, 0] = False  # ignore the top-left corner
+    correct_0to1 = tf.convert_to_tensor(correct_0to1)
 
     # 4. construct a gt conf_matrix -------------------------FIX THIS
-    conf_matrix_gt = tf.zeros(N, h0*w0, h1*w1)
-    temp = tf.where(correct_0to1 != 0)
+    conf_matrix_gt = tf.zeros([N, h0*w0, h1*w1])
+    temp = tf.where(correct_0to1 != False)
     b_ids, i_ids = temp[:,0], temp[:,1]
     j_ids = tf.gather_nd(nearest_index1, list(zip(b_ids,i_ids)))
     
     
-
-    conf_matrix_gt[b_ids, i_ids, j_ids] = 1
+    conf_matrix_gt = conf_matrix_gt.numpy()
+    conf_matrix_gt[b_ids.numpy().astype(int), i_ids.numpy().astype(int), j_ids.numpy().astype(int)] = 1
+    conf_matrix_gt = tf.convert_to_tensor(conf_matrix_gt)
+    # conf_matrix_gt[b_ids, i_ids, j_ids] = 1
+    
     data.update({'conf_matrix_gt': conf_matrix_gt})
 
     # 5. save coarse matches(gt) for training fine level
@@ -130,11 +154,12 @@ def spvs_coarse(data, config):
         'spv_w_pt0_i': w_pt0_i,
         'spv_pt1_i': grid_pt1_i
     })
+    print("Course SuperVision Done")
     return data
 
 
 def compute_supervision_coarse(data, config):
-    data = spvs_coarse(data, config)
+    return spvs_coarse(data, config)
 
     # assert len(set(data['dataset_name'])) == 1, "Do not support mixed datasets training!"
     # data_source = data['dataset_name'][0]

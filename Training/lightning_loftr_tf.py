@@ -4,6 +4,18 @@
 # 4-  training_step
 # 5- training epoch end
 # 6- compute metrics
+
+import os
+import sys
+print(os.getcwd())
+import tensorflow as tf
+from LoFTR_TF import LoFTR
+os.chdir("LoFTR-in-Tensorflow")
+from supervisionTF import compute_supervision_coarse, compute_supervision_fine
+from loftr_lossTF import LoFTRLoss
+from loadData import read_data
+
+
 config = {'LOFTR': 
 
 {'BACKBONE_TYPE': 'ResNetFPN', 'RESOLUTION': (8, 2), 'FINE_WINDOW_SIZE': 5, 'FINE_CONCAT_COARSE_FEAT': True, 
@@ -27,21 +39,18 @@ _config = {'loftr': {'backbone_type': 'ResNetFPN',
             'resnetfpn': {'initial_dim': 128, 'block_dims': [128,196,256]}, 
             'coarse': {'d_model': 256, 'd_ffn': 256, 'nhead': 8, 'layer_names': ['self', 'cross', 'self', 'cross', 'self', 'cross', 'self', 'cross'], 'attention': 'linear', 'temp_bug_fix': True}, 
             'match_coarse': {'thr': 0.2, 'border_rm': 2, 'match_type': 'dual_softmax', 'dsmax_temperature': 0.1, 'skh_iters': 3, 'skh_init_bin_score': 1.0, 'skh_prefilter': True, 'train_coarse_percent': 0.4, 'train_pad_num_gt_min': 200}, 
-            'fine': {'d_model': 128, 'd_ffn': 128, 'nhead': 8, 'layer_names': ['self','cross'], 'attention': 'linear'}}, 
-'dataset': {'trainval_data_source': 'ScanNet', 'train_data_root': 'data/scannet/train', 'train_pose_root': None, 'train_npz_root': 'data/scannet/index/s...data/train', 'train_list_path': 'data/scannet/index/s...et_all.txt', 'train_intrinsic_path': 'data/scannet/index/i...insics.npz', 'val_data_root': 'data/scannet/test', 'val_pose_root': None, 'val_npz_root': 'assets/scannet_test_1500', ...}, 
-'trainer': {'world_size': 4, 'canonical_bs': 64, 'canonical_lr': 0.006, 'scaling': 0.0625, 'find_lr': False, 'optimizer': 'adamw', 'true_lr': 0.000375, 'adam_decay': 0.0, 'adamw_decay': 0.1, ...}}
+            'fine': {'d_model': 128, 'd_ffn': 128, 'nhead': 8, 'layer_names': ['self','cross'], 'attention': 'linear'}}}
+# 'dataset': {'trainval_data_source': 'ScanNet', 'train_data_root': 'data/scannet/train', 'train_pose_root': None, 'train_npz_root': 'data/scannet/index/s...data/train', 'train_list_path': 'data/scannet/index/s...et_all.txt', 'train_intrinsic_path': 'data/scannet/index/i...insics.npz', 'val_data_root': 'data/scannet/test', 'val_pose_root': None, 'val_npz_root': 'assets/scannet_test_1500', ...}, 
+# 'trainer': {'world_size': 4, 'canonical_bs': 64, 'canonical_lr': 0.006, 'scaling': 0.0625, 'find_lr': False, 'optimizer': 'adamw', 'true_lr': 0.000375, 'adam_decay': 0.0, 'adamw_decay': 0.1, ...}}
 
 
-import tensorflow as tf
-import os
-os.chdir("..")
-from Training.supervisionTF import compute_supervision_coarse, compute_supervision_fine
-from Training.loftr_lossTF import LoFTRLoss
-from LoFTR_TF import LoFTR
+
+
+
 
 optimizer_1=tf.keras.optimizer.Adam(learning_rate=0.001)
 
-matcher=LoFTR(config=_config['loftr'], training = True) # to be fixed
+matcher=LoFTR(config=_config['loftr']) # to be fixed
 loss=LoFTRLoss(_config) # to be fixed
 
 @tf.function
@@ -61,7 +70,7 @@ def train_step(data):
     return data['loss']
 
 epochs=100
-batches=64##TODO: Make dataset batches
+batches = read_data('./Training/Ready','./Training/Ready')
 loss_all=[]
 
 for epoch in range(epochs):

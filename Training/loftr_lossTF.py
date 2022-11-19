@@ -161,7 +161,7 @@ class LoFTRLoss(tf.keras.Model):
         return loss
     
     #@torch.no_grad()
-    @tf.stop_gradient()
+    # @tf.stop_gradient()
     def compute_c_weight(self, data):
         """ compute element-wise weights for computing coarse-level loss. """
         if 'mask0' in data:
