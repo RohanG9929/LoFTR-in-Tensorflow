@@ -279,8 +279,7 @@ class CoarseMatching(tf.keras.Model):
             mconf_gt = tf.zeros(len(data['spv_b_ids']))  # set conf of gt paddings to all zero
 
             b_ids, i_ids, j_ids, mconf = map(
-                lambda x, y: tf.concat([x[pred_indices], y[gt_pad_indices]],
-                                       0),
+                lambda x, y: tf.concat([x[pred_indices], y[gt_pad_indices]],axis=0),
                 *zip([b_ids, data['spv_b_ids']], [i_ids, data['spv_i_ids']],
                      [j_ids, data['spv_j_ids']], [mconf, mconf_gt]))
 

@@ -81,5 +81,4 @@ def warp_kpts(kpts0, depth0, depth1, T_0to1, K0, K1):
     valid_mask = nonzero_mask.numpy() * tf.cast(covisible_mask,dtype=tf.bool).numpy() * consistent_mask.numpy()
     valid_mask = tf.convert_to_tensor(valid_mask)
 
-    print("Warp Kpts DONE")
     return valid_mask, w_kpts0

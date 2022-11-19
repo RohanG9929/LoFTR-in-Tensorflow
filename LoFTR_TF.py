@@ -55,8 +55,8 @@ class LoFTR(tf.keras.Model):
     
             #Splitting into features A and features B (feat im1 and feat im2)
             #For course and fine
-            (feat_c0, feat_c1) = tf.split(feats_c,num_or_size_splits=(data['bs']+1),axis=0)
-            (feat_f0, feat_f1) = tf.split(feats_f,num_or_size_splits=(data['bs']+1),axis=0)
+            (feat_c0, feat_c1) = tf.split(feats_c,num_or_size_splits=(2),axis=0)
+            (feat_f0, feat_f1) = tf.split(feats_f,num_or_size_splits=(2),axis=0)
         else:  # handle different input shapes
             # (feat_c0, feat_f0), (feat_c1, feat_f1) = self.backbone(data['image0']), self.backbone(data['image1'])
             (feat_c0, feat_f0), (feat_c1, feat_f1) = Module1(data['image0']), Module1(data['image1'])
