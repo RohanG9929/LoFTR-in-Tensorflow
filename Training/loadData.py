@@ -48,20 +48,24 @@ def read_data(path_imgs,path_depth):#,transf,intrinsics,no_of_pairs=5):
     '''
     returns a dictionary containing the data
      data = {
-            'image0': image0,  # (1, h, w)
-            'depth0': depth0,  # (h, w)
+            'image0': image0,  # (N, 1, h, w)
+            'depth0': depth0,  # (N, h, w)
             'image1': image1,
             'depth1': depth1,
-            'T_left_to_right': T_0to1,  # (4, 4)
+            'T_left_to_right': T_0to1,  # (N,4, 4)
             'T_right_to_left': T_1to0,
-            'K0': K_0,  # (3, 3)
+            'K0': K_0,  # (N,3, 3)
             'K1': K_1,
-            'scale0': scale0,  # [scale_w, scale_h]
-            'scale1': scale1,
-            'dataset_name': 'MegaDepth',
-            'scene_id': self.scene_id,
-            'pair_id': idx,
-            'pair_names': (self.scene_info['image_paths'][idx0], self.scene_info['image_paths'][idx1]),
+
+
+
+            #NOT INCLUDED
+            # 'scale0': scale0,  # [scale_w, scale_h]
+            # 'scale1': scale1,
+            # 'dataset_name': 'MegaDepth',
+            # 'scene_id': self.scene_id,
+            # 'pair_id': idx,
+            # 'pair_names': (self.scene_info['image_paths'][idx0], self.scene_info['image_paths'][idx1]),
         }
 
     '''
@@ -127,6 +131,8 @@ def read_data(path_imgs,path_depth):#,transf,intrinsics,no_of_pairs=5):
 
     batches.append(data)
     return batches
+
+#Right now it is just one batch. In reality there will be multiple batches and each batch will have size N
             
                         
 
