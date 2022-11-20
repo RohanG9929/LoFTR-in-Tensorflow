@@ -243,13 +243,10 @@ class CoarseMatching(tf.keras.Model):
             # The sampling is performed across all pairs in a batch without manually balancing
             # #samples for fine-level increases w.r.t. batch_size
             if 'mask0' not in data:
-                num_candidates_max = mask.shape[0] * max(
-                    mask.shape[1], mask.shape[2])
+                num_candidates_max = mask.shape[0] * max(mask.shape[1], mask.shape[2])
             else:
-                num_candidates_max = compute_max_candidates(
-                    data['mask0'], data['mask1'])
-            num_matches_train = int(num_candidates_max *
-                                    self.train_coarse_percent)
+                num_candidates_max = compute_max_candidates(data['mask0'], data['mask1'])
+            num_matches_train = int(num_candidates_max * self.train_coarse_percent)
             num_matches_pred = len(b_ids)
             assert self.train_pad_num_gt_min < num_matches_train, "min-num-gt-pad should be less than num-train-matches"
 
@@ -266,11 +263,7 @@ class CoarseMatching(tf.keras.Model):
                     (num_matches_train - self.train_pad_num_gt_min, ), maxval = num_matches_pred, dtype = tf.int32)              
 
             # gt_pad_indices is to select from gt padding. e.g. max(3787-4800, 200)
-            # gt_pad_indices = torch.randint(
-            #         len(data['spv_b_ids']),
-            #         (max(num_matches_train - num_matches_pred,
-            #             self.train_pad_num_gt_min), ),
-            #         device=_device)
+            # gt_pad_indices = torch.randint(len(data['spv_b_ids']),(max(num_matches_train - num_matches_pred,self.train_pad_num_gt_min), ),device=_device)
             # mconf_gt = torch.zeros(len(data['spv_b_ids']), device=_device)  # set conf of gt paddings to all zero
 
             gt_pad_indices = tf.random.uniform(
@@ -278,10 +271,8 @@ class CoarseMatching(tf.keras.Model):
                         self.train_pad_num_gt_min), ),  maxval = len(data['spv_b_ids']), dtype =tf.int32)
             mconf_gt = tf.zeros(len(data['spv_b_ids']))  # set conf of gt paddings to all zero
 
-            b_ids, i_ids, j_ids, mconf = map(
-                lambda x, y: tf.concat([x[pred_indices], y[gt_pad_indices]],axis=0),
-                *zip([b_ids, data['spv_b_ids']], [i_ids, data['spv_i_ids']],
-                     [j_ids, data['spv_j_ids']], [mconf, mconf_gt]))
+            b_ids, i_ids, j_ids, mconf = map(lambda x, y: tf.concat([x.numpy()[pred_indices.numpy()], y.numpy()[gt_pad_indices.numpy()]],axis=0),
+                                         *zip([b_ids, data['spv_b_ids']], [i_ids, data['spv_i_ids']],[j_ids, data['spv_j_ids']], [mconf, mconf_gt]))
 
         # These matches select patches that feed into fine-level network
         coarse_matches = {'b_ids': b_ids, 'i_ids': i_ids, 'j_ids': j_ids}

@@ -40,26 +40,28 @@ class FinePreprocess(tf.keras.Model):
             return feat0, feat1, data
 
         # 1. unfold(crop) all local windows
-        feat_f0_unfold = tf.image.extract_patches(feat_f0, sizes=[1,W,W,1], strides=[1,stride,stride,1],rates=[1,1,1,1], padding='SAME')
+        feat_f0_unfold = tf.image.extract_patches(tf.transpose(feat_f0,[0,2,3,1]), sizes=[1,W,W,1], strides=[1,stride,stride,1],rates=[1,1,1,1], padding='SAME')
         feat_f0_unfold = tf.reshape(feat_f0_unfold,(feat_f0_unfold.shape[0],feat_f0_unfold.shape[1]*feat_f0_unfold.shape[2],feat_f0_unfold.shape[3]))
         feat_f0_unfold = tf.transpose(feat_f0_unfold,[0,2,1])
         # feat_f0_unfold = F.unfold(feat_f0, kernel_size=(W, W), stride=stride, padding=W//2)
         feat_f0_unfold = rearrange(feat_f0_unfold, 'n (c ww) l -> n l ww c', ww=W**2)
 
-        feat_f1_unfold = tf.image.extract_patches(feat_f1, sizes=[1,W,W,1], strides=[1,stride,stride,1],rates=[1,1,1,1], padding='SAME')
+        feat_f1_unfold = tf.image.extract_patches(tf.transpose(feat_f1,[0,2,3,1]), sizes=[1,W,W,1], strides=[1,stride,stride,1],rates=[1,1,1,1], padding='SAME')
         feat_f1_unfold = tf.reshape(feat_f1_unfold,(feat_f1_unfold.shape[0],feat_f1_unfold.shape[1]*feat_f1_unfold.shape[2],feat_f1_unfold.shape[3]))
         feat_f1_unfold = tf.transpose(feat_f1_unfold,[0,2,1])
         # feat_f1_unfold = F.unfold(feat_f1, kernel_size=(W, W), stride=stride, padding=W//2)
         feat_f1_unfold = rearrange(feat_f1_unfold, 'n (c ww) l -> n l ww c', ww=W**2)
 
         # 2. select only the predicted matches
-        feat_f0_unfold = feat_f0_unfold[data['b_ids'], data['i_ids']]  # [n, ww, cf]
-        feat_f1_unfold = feat_f1_unfold[data['b_ids'], data['j_ids']]
+        feat_f0_unfold = feat_f0_unfold.numpy()[data['b_ids'].numpy(), data['i_ids'].numpy()]  # [n, ww, cf]
+        feat_f0_unfold = tf.convert_to_tensor(feat_f0_unfold)
 
+        feat_f1_unfold = feat_f1_unfold.numpy()[data['b_ids'].numpy(), data['j_ids'].numpy()]
+        feat_f1_unfold = tf.convert_to_tensor(feat_f1_unfold)
         # option: use coarse-level loftr feature as context: concat and linear
         if self.cat_c_feat:
-            feat_c_win = self.down_proj(tf.concat([feat_c0[data['b_ids'], data['i_ids']],
-                                                   feat_c1[data['b_ids'], data['j_ids']]], axis=0))  # [2n, c]
+            feat_c_win = self.down_proj(tf.concat([feat_c0.numpy()[data['b_ids'].numpy(), data['i_ids'].numpy()],
+                                                   feat_c1.numpy()[data['b_ids'].numpy(), data['j_ids'].numpy()]], axis=0))  # [2n, c]
             feat_cf_win = self.merge_feat(tf.concat([
                 tf.concat([feat_f0_unfold, feat_f1_unfold], axis=0),  # [2n, ww, cf]
                 repeat(feat_c_win, 'n c -> n ww c', ww=W**2),  # [2n, ww, cf]

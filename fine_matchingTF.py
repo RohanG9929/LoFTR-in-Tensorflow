@@ -44,8 +44,7 @@ class FineMatching(tf.keras.Model):
         feat_f0_picked = feat_f0_picked = feat_f0[:, WW//2, :]
         sim_matrix = tf.einsum('mc,mrc->mr', feat_f0_picked, feat_f1)
         softmax_temp = 1. / C**.5
-        heatmap = tf.nn.softmax(softmax_temp * sim_matrix, axis=1)
-        heatmap = tf.reshape(heatmap,(-1, W, W))
+        heatmap =  tf.reshape(tf.nn.softmax(softmax_temp * sim_matrix, axis=1),(-1, W, W))
 
         # compute coordinates from heatmap
         coords_normalized = self.spatial_expec(heatmap[None], True)[0]# dsnt.spatial_expectation2d(heatmap[None], True)[0]  # [M, 2]
@@ -54,8 +53,8 @@ class FineMatching(tf.keras.Model):
         grid_normalized = tf.reshape(grid_normalized,(1, -1, 2))
 
         # compute std over <x, y>
-        var = tf.reduce_sum(grid_normalized**2 * tf.reshape(heatmap,(-1, WW, -1)), axis=1) - coords_normalized**2  # [M, 2]
-        std = tf.reduce_sum(tf.math.sqrt(tf.clip_by_value(var, clip_value_min=1e-10)), -1)  # [M]  clamp needed for numerical stability
+        var = tf.reduce_sum(tf.cast((grid_normalized**2),tf.double) * tf.cast(tf.reshape(heatmap,(-1, WW, 1)),tf.double), axis=1) - coords_normalized**2  # [M, 2]
+        std = tf.reduce_sum(tf.math.sqrt(tf.clip_by_value(var, clip_value_min=1e-10,clip_value_max=float('inf'))), -1)  # [M]  clamp needed for numerical stability
 
         
         # for fine-level supervision
@@ -63,6 +62,7 @@ class FineMatching(tf.keras.Model):
 
         # compute absolute kpt coords
         data = self.get_fine_match(coords_normalized, data)
+        print("module 5 Done")
         return data
 
 
@@ -82,8 +82,7 @@ class FineMatching(tf.keras.Model):
         return data
 
     
-
-    def create_mesh(height: int,width: int,normalized_coordinates: bool = True):
+    def create_mesh(self,height: int,width: int,normalized_coordinates: bool = True):
 
         xs = tf.linspace(0, width - 1, width)
         ys = tf.linspace(0, height - 1, height)
@@ -100,29 +99,29 @@ class FineMatching(tf.keras.Model):
             ys = (ys / (height - 1) - 0.5) * 2
         # generate grid by stacking coordinates
 
-        base_grid = tf.stack(tf.meshgrid([xs, ys], indexing="ij"), axis=-1, name='stack')  # WxHx2
+        base_grid = tf.stack(tf.meshgrid(xs, ys, indexing="ij"), axis=-1, name='stack')  # WxHx2
 
-        return  tf.expand_dims(tf.transpose(base_grid,[1,0,2]), axis=0)#base_grid.permute(1, 0, 2).unsqueeze(0)  # 1xHxWx2
+        return  tf.expand_dims(tf.transpose(base_grid,[1,0,2]), axis=0)
 
-    def spatial_expec(input,normalized_coordinates):
+    def spatial_expec(self,input,normalized_coordinates):
 
         batch_size, channels, height, width = input.shape
 
         # Create coordinates grid.
-        grid = FineMatching.create_mesh(height, width, normalized_coordinates)
+        grid = self.create_mesh(height, width, normalized_coordinates)
         #[1,H,W,2]
         # grid = grid.to(input.dtype)
 
-        pos_x = grid[:,:,:,0]
-        pos_y = grid[:,:,:,1]
+        pos_x = tf.convert_to_tensor(tf.reshape(grid[..., 0],-1))
+        pos_y = tf.convert_to_tensor(tf.reshape(grid[..., 1],-1))
         # pos_x: torch.Tensor = grid[..., 0].reshape(-1)
         # pos_y: torch.Tensor = grid[..., 1].reshape(-1)
         
         input_flat =  tf.reshape(input,(batch_size, channels, -1))#input.view(batch_size, channels, -1)
 
         # Compute the expectation of the coordinates.
-        expected_y = tf.math.reduce_sum(pos_y * input_flat, -1, keepdim=True)
-        expected_x = tf.math.reduce_sum(pos_x * input_flat, -1, keepdim=True)
+        expected_y = tf.math.reduce_sum(tf.cast(pos_y,tf.double) * tf.cast(input_flat,tf.double), -1, keepdims=True)
+        expected_x = tf.math.reduce_sum(tf.cast(pos_x,tf.double) * tf.cast(input_flat,tf.double), -1, keepdims=True)
 
         output = tf.concat([expected_x, expected_y], -1)
 

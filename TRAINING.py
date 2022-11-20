@@ -14,6 +14,9 @@ from LoFTR_TF import LoFTR
 from Training.supervisionTF import compute_supervision_coarse, compute_supervision_fine
 from Training.loftr_lossTF import LoFTRLoss
 from Training.loadData import read_data
+from plotting_TF import make_matching_figure
+import cv2 as cv
+import matplotlib.cm as cm
 
 
 config = {'LOFTR': 
@@ -45,12 +48,14 @@ _config = {'loftr': {'backbone_type': 'ResNetFPN',
 # 'dataset': {'trainval_data_source': 'ScanNet', 'train_data_root': 'data/scannet/train', 'train_pose_root': None, 'train_npz_root': 'data/scannet/index/s...data/train', 'train_list_path': 'data/scannet/index/s...et_all.txt', 'train_intrinsic_path': 'data/scannet/index/i...insics.npz', 'val_data_root': 'data/scannet/test', 'val_pose_root': None, 'val_npz_root': 'assets/scannet_test_1500', ...}, 
 # 'trainer': {'world_size': 4, 'canonical_bs': 64, 'canonical_lr': 0.006, 'scaling': 0.0625, 'find_lr': False, 'optimizer': 'adamw', 'true_lr': 0.000375, 'adam_decay': 0.0, 'adamw_decay': 0.1, ...}}
 
-
+checkpointPath = "./Training"
 
 optimizer_1=tf.keras.optimizers.Adam(learning_rate=0.001)
+train_acc_metric = tf.keras.metrics.SparseCategoricalAccuracy()
+val_acc_metric = tf.keras.metrics.SparseCategoricalAccuracy()
 
 matcher=LoFTR(config=_config['loftr']) # to be fixed
-loss=LoFTRLoss(_config) # to be fixed
+modelLoss=LoFTRLoss(_config) # to be fixed
 
 # @tf.function
 def train_step(data):
@@ -61,28 +66,61 @@ def train_step(data):
         superVisionData = compute_supervision_coarse(data,config)#Works
         modelData = matcher(superVisionData, training = True)
         fineSuperData = compute_supervision_fine(modelData,config)
-        lossData = loss(fineSuperData)
-
-        #TODO: Fix Module 3,4,5 
-        #TODO: Debug loss and make sure there are no errors
-        #TODO: Make sure training loop works
+        lossData = modelLoss(fineSuperData)
     
-    grads = tape.gradient(lossData['loss'], matcher.trainable_weights) # to be fixed
+    grads = tape.gradient(lossData['loss'], matcher.trainable_weights)
     optimizer_1.apply_gradients(zip(grads, matcher.trainable_weights))
 
-    return data['loss']
+    return lossData['loss']
 
-epochs=100
-batches = read_data('./Training/Ready','./Training/Ready')#Works
+epochs = 10
+scenes = read_data('./Training/Ready','./Training/Ready')#Works
 loss_all=[]
 
 for epoch in range(epochs):
     loss=0
-    for batch in (batches):
+    for batch in (scenes):
         loss+=train_step(batch)
-    loss=tf.math.reduce_sum(loss)/(batches)
-    loss_all.append(loss)
+    print(f'loss for epoch{epoch} is {loss}')
+    loss_all.append(tf.math.reduce_sum(loss)/(len(scenes)))
 
+
+######################################################################
+print("Training Done")
+######################################################################
+
+#loading in the images for the current batch
+img0_pth = "./Training/Ready/603.jpg"
+img1_pth = "./Training/Ready/604.jpg"
+img0_raw = cv.imread(img0_pth, cv.IMREAD_GRAYSCALE)
+img1_raw = cv.imread(img1_pth, cv.IMREAD_GRAYSCALE)
+img0_raw = cv.resize(img0_raw, (640, 480))
+img1_raw = cv.resize(img1_raw, (640, 480))
+
+img0 = tf.convert_to_tensor(img0_raw)[None][None]/255
+img1 = tf.convert_to_tensor(img1_raw)[None][None]/255
+
+data = {'image0': img0, 'image1': img1}
+
+#Calling the matcher on the current batch
+updata = matcher(data)
+
+mkpts0 = updata['mkpts0_f'].numpy()
+mkpts1 = updata['mkpts1_f'].numpy()
+mconf = updata['mconf'].numpy()
+
+color = cm.jet(mconf)
+text = [
+    'LoFTR',
+    'Matches: {}'.format(len(mkpts0)),
+]
+fig = make_matching_figure(img0_raw, img1_raw, mkpts0, mkpts1, color, text=text)
+
+# Calling `save('my_model')` creates a SavedModel folder `my_model`.
+matcher.save("my_model")
+
+# It can be used to reconstruct the model identically.
+# reconstructed_model = tf.keras.models.load_model("my_model")
 
 
 

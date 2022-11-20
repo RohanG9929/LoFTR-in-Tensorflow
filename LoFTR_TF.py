@@ -65,7 +65,7 @@ class LoFTR(tf.keras.Model):
             'hw0_c': feat_c0.shape[2:], 'hw1_c': feat_c1.shape[2:], 
             'hw0_f': feat_f0.shape[2:], 'hw1_f': feat_f1.shape[2:]
         })
-
+        print('Module 1 Done')
         ################################################################################################################
         # 2. Coarse-level loftr module
         ################################################################################################################
@@ -78,24 +78,24 @@ class LoFTR(tf.keras.Model):
         #     mask_c0, mask_c1 = data['mask0'].flatten(-2), data['mask1'].flatten(-2) 
         feat_c0, feat_c1 = self.loftr_coarse(feat_c0, feat_c1, mask_c0, mask_c1)
 
-        print(f'Course output is {feat_c0.shape} {feat_c1.shape}')
+        print('Module 2 Done')
         ################################################################################################################
         # 3. Match coarse-level
         ################################################################################################################
         data = self.coarse_matching(feat_c0, feat_c1, data, mask_c0=mask_c0, mask_c1=mask_c1, training=training)
-
+        print('Module 3 Done')
         ################################################################################################################
         # 4. Fine-level refinement
         ################################################################################################################
         feat_f0_unfold, feat_f1_unfold, data = self.fine_preprocess(feat_f0, feat_f1, feat_c0, feat_c1, data)
         if feat_f0_unfold.shape[0] != 0:  # at least one coarse level predicted
             feat_f0_unfold, feat_f1_unfold = self.loftr_fine(feat_f0_unfold, feat_f1_unfold)
-
+        print('Module 4 Done')
         ################################################################################################################
         # 5. Match fine-level
         ################################################################################################################
         data = self.fine_matching(feat_f0_unfold, feat_f1_unfold, data, training = training)
-
+        print('Module 5 Done')
         return data
 
 

@@ -102,15 +102,15 @@ class LoFTRLoss(tf.keras.Model):
         else:
             raise ValueError('Unknown coarse loss: {type}'.format(type=self.loss_config['coarse_type']))
         
-    def compute_fine_loss(self, expec_f, expec_f_gt):
+    def compute_fine_loss(self, expec_f, expec_f_gt,training):
         if self.fine_type == 'l2_with_std':
-            return self._compute_fine_loss_l2_std(expec_f, expec_f_gt)
+            return self._compute_fine_loss_l2_std(expec_f, expec_f_gt,training)
         elif self.fine_type == 'l2':
-            return self._compute_fine_loss_l2(expec_f, expec_f_gt)
+            return self._compute_fine_loss_l2(expec_f, expec_f_gt,training)
         else:
             raise NotImplementedError()
 
-    def _compute_fine_loss_l2(self, expec_f, expec_f_gt):
+    def _compute_fine_loss_l2(self, expec_f, expec_f_gt,training):
         """
         Args:
             expec_f (torch.Tensor): [M, 2] <x, y>
@@ -118,7 +118,7 @@ class LoFTRLoss(tf.keras.Model):
         """
         correct_mask = tf.norm(expec_f_gt, ord=np.inf, axis=1) < self.correct_thr
         if correct_mask.sum() == 0:
-            if self.training:  # this seldomly happen when training, since we pad prediction with gt
+            if training:  # this seldomly happen when training, since we pad prediction with gt
                 logger.warning("assign a false supervision to avoid ddp deadlock")
                 correct_mask[0] = True
             else:
@@ -127,7 +127,7 @@ class LoFTRLoss(tf.keras.Model):
         offset_l2=tf.math.reduce_sum((expec_f_gt[correct_mask] - expec_f[correct_mask]) ** 2,axis=-1)
         return tf.math.reduce_mean(offset_l2)
 
-    def _compute_fine_loss_l2_std(self, expec_f, expec_f_gt):
+    def _compute_fine_loss_l2_std(self, expec_f, expec_f_gt, training):
         """
         Args:
             expec_f (torch.Tensor): [M, 3] <x, y, std>
@@ -138,12 +138,12 @@ class LoFTRLoss(tf.keras.Model):
 
         # use std as weight that measures uncertainty
         std = expec_f[:, 2]
-        inverse_std = 1. / tf.clip_by_value(std, min=1e-10)
-        weight = (inverse_std / tf.math.reduce_mean(inverse_std)).detach()  # avoid minizing loss through increase std
+        inverse_std = 1. / tf.clip_by_value(std, clip_value_min=1e-10,clip_value_max=float('inf'))
+        weight = (inverse_std / tf.math.reduce_mean(inverse_std))#.detach()  # avoid minizing loss through increase std
 
         # corner case: no correct coarse match found
-        if not correct_mask.any():
-            if self.training:  # this seldomly happen during training, since we pad prediction with gt
+        if not correct_mask.numpy().any():
+            if training:  # this seldomly happen during training, since we pad prediction with gt
                                # sometimes there is not coarse-level gt at all.
                 logger.warning("assign a false supervision to avoid ddp deadlock")
                 correct_mask[0] = True
@@ -153,7 +153,7 @@ class LoFTRLoss(tf.keras.Model):
 
         # l2 loss with std
         #offset_l2 = ((expec_f_gt[correct_mask] - expec_f[correct_mask, :2]) ** 2).sum(-1)
-        offset_l2=tf.math.reduce_sum((expec_f_gt[correct_mask] - expec_f[correct_mask, :2]) ** 2,axis=-1)
+        offset_l2=tf.math.reduce_sum((expec_f_gt.numpy()[correct_mask.numpy()] - expec_f.numpy()[correct_mask.numpy(), :2]) ** 2,axis=-1)
 
         #loss = (offset_l2 * weight[correct_mask]).mean()
         loss=tf.math.reduce_mean(offset_l2 * weight[correct_mask])
@@ -173,7 +173,7 @@ class LoFTRLoss(tf.keras.Model):
             c_weight = None
         return c_weight
 
-    def forward(self, data):
+    def call(self, data, training = True):
         """
         Update:
             data (dict): update{
@@ -192,20 +192,22 @@ class LoFTRLoss(tf.keras.Model):
             data['conf_matrix_gt'],
             weight=c_weight)
         loss = loss_c * self.loss_config['coarse_weight']
-        #loss_scalars.update({"loss_c": loss_c.clone().detach().cpu()})
-        loss_scalars.update({"loss_c": tf.identity(loss_c).detach().cpu()})
+        #loss_scalars.update({"loss_c": loss_c.clone()})#.detach().cpu()})
+        loss_scalars.update({"loss_c": tf.identity(loss_c)})#.detach().cpu()})
 
 
         # 2. fine-level loss
-        loss_f = self.compute_fine_loss(data['expec_f'], data['expec_f_gt'])
+        loss_f = self.compute_fine_loss(data['expec_f'], data['expec_f_gt'],training)
         if loss_f is not None:
             loss += loss_f * self.loss_config['fine_weight']
-            #loss_scalars.update({"loss_f":  loss_f.clone().detach().cpu()})
-            loss_scalars.update({"loss_f": tf.identity(loss_f).detach().cpu()})
+            #loss_scalars.update({"loss_f":  loss_f.clone()})#.detach().cpu()})
+            loss_scalars.update({"loss_f": tf.identity(loss_f)})#.detach().cpu()})
         else:
-            assert self.training is False
+            assert training is False
             loss_scalars.update({'loss_f': tf.tensor(1.)})  # 1 is the upper bound
 
-        #loss_scalars.update({'loss': loss.clone().detach().cpu()})
-        loss_scalars.update({"loss": tf.identity(loss).detach().cpu()})
+        #loss_scalars.update({'loss': loss.clone()})#.detach().cpu()})
+        loss_scalars.update({"loss": tf.identity(loss)})#.detach().cpu()})
         data.update({"loss": loss, "loss_scalars": loss_scalars})
+        print('Loss Done')
+        return data
