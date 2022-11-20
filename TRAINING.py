@@ -58,7 +58,7 @@ def train_step(data):
     data is a dictionary containing
     '''
     with tf.GradientTape() as tape:
-        superVisionData = compute_supervision_coarse(data,config)
+        superVisionData = compute_supervision_coarse(data,config)#Works
         modelData = matcher(superVisionData, training = True)
         fineSuperData = compute_supervision_fine(modelData,config)
         lossData = loss(fineSuperData)
@@ -73,7 +73,7 @@ def train_step(data):
     return data['loss']
 
 epochs=100
-batches = read_data('./Training/Ready','./Training/Ready')
+batches = read_data('./Training/Ready','./Training/Ready')#Works
 loss_all=[]
 
 for epoch in range(epochs):
