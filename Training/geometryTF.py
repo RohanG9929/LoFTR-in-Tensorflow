@@ -2,28 +2,23 @@ import tensorflow as tf
 import numpy as np
 
 
-#@torch.no_grad()
+#@tf.no_grad()
 def warp_kpts(kpts0, depth0, depth1, T_0to1, K0, K1):
     """ Warp kpts0 from I0 to I1 with depth, K and Rt
     Also check covisibility and depth consistency.
     Depth is consistent if relative error < 0.2 (hard-coded).
     
     Args:
-        kpts0 (torch.Tensor): [N, L, 2] - <x, y>,
-        depth0 (torch.Tensor): [N, H, W],
-        depth1 (torch.Tensor): [N, H, W],
-        T_0to1 (torch.Tensor): [N, 3, 4],
-        K0 (torch.Tensor): [N, 3, 3],
-        K1 (torch.Tensor): [N, 3, 3],
+        kpts0 (tf.Tensor): [N, L, 2] - <x, y>,
+        depth0 (tf.Tensor): [N, H, W],
+        depth1 (tf.Tensor): [N, H, W],
+        T_0to1 (tf.Tensor): [N, 3, 4],
+        K0 (tf.Tensor): [N, 3, 3],
+        K1 (tf.Tensor): [N, 3, 3],
     Returns:
-        calculable_mask (torch.Tensor): [N, L]
-        warped_keypoints0 (torch.Tensor): [N, L, 2] <x0_hat, y1_hat>
+        calculable_mask (tf.Tensor): [N, L]
+        warped_keypoints0 (tf.Tensor): [N, L, 2] <x0_hat, y1_hat>
     """
-    # depth0 = tf.reshape(depth0,[1,depth0.shape[0],depth0.shape[1]])
-    # depth1 = tf.reshape(depth1,[1,depth1.shape[0],depth1.shape[1]])
-    # T_0to1 = tf.reshape(T_0to1[0:3,:],[1,T_0to1.shape[0],T_0to1.shape[1]])
-    # K0 = tf.reshape(K0,[1,K0.shape[0],K0.shape[1]])
-    # K1 = tf.reshape(K1,[1,K1.shape[0],K1.shape[1]])
 
     kpts0_long = tf.cast(tf.math.round(kpts0),dtype=tf.float32)
 

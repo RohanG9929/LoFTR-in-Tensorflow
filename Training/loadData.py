@@ -44,7 +44,7 @@ def giveT():
 
     return T0_to_1, T1_to_0
 
-def read_data(path_imgs,path_depth):#,transf,intrinsics,no_of_pairs=5):
+def read_data(scene_path):#,transf,intrinsics,no_of_pairs=5):
     '''
     returns a dictionary containing the data
      data = {
@@ -52,12 +52,13 @@ def read_data(path_imgs,path_depth):#,transf,intrinsics,no_of_pairs=5):
             'depth0': depth0,  # (N, h, w)
             'image1': image1,
             'depth1': depth1,
-            'T_left_to_right': T_0to1,  # (N,4, 4)
+            'T_left_to_right': T_0to1,  # (N, 4, 4)
             'T_right_to_left': T_1to0,
-            'K0': K_0,  # (N,3, 3)
+            'K0': K_0,  # (N, 3, 3)
             'K1': K_1,
 
 
+            N is number of pairs
 
             #NOT INCLUDED
             # 'scale0': scale0,  # [scale_w, scale_h]
@@ -70,66 +71,74 @@ def read_data(path_imgs,path_depth):#,transf,intrinsics,no_of_pairs=5):
 
     '''
     batches=[]
-    ################## ead images ########################
-    images=glob.glob(""+path_imgs+"/*.jpg")
-    #################### read depths ######################
-    depth=glob.glob(""+path_depth+"/*.mat")
-    assert len(images)==len(depth)
+    numScenes = os.listdir(scene_path)
+    try:
+        numScenes.remove('.DS_Store')
+        print("Scenes Loaded")
+    except:
+        print("Scenes Loaded")
 
-    count=0
+    for s in numScenes:
+        ################## ead images ########################
+        images=glob.glob(""+scene_path+"/"+s+"/Images/*.jpg")
+        #################### read depths ######################
+        depth=glob.glob(""+scene_path+"/"+s+"/Depths/*.mat")
+        assert len(images)==len(depth)
 
-    #Order list
-    orderedImages = []
-    fileNums = []
-    for file in images:
-        fileNums.append(int(file.split('.')[1].split('/')[-1]))
-    fileNums.sort()
+        count=0
 
-    for num in fileNums:
-        orderedImages.append(""+path_imgs+"/"+str(num)+".jpg")
+        #Order list
+        orderedImages = []
+        fileNums = []
+        for file in images:
+            fileNums.append(int(file.split('.')[1].split('/')[-1]))
+        fileNums.sort()
 
-    data={}
+        for num in fileNums:
+            orderedImages.append(""+scene_path+"/"+s+"/Images/"+str(num)+".jpg")
 
-    for idx, image in enumerate(list(orderedImages)):
-        image_num=image.split('.')[1].split('/')[-1]
-        currImage=cv2.imread(image,0)
-        currImage = np.reshape(currImage,(1,currImage.shape[0],currImage.shape[1]))
-        for d in list(depth):
-            if (d.split('.')[1].split('/')[-1]==image_num):
-                # read depth and increment count
-                myDepth=loadmat(d)['depthOut']
-                count+=1
-                if count==1:
-                    if idx==0:
-                        data['image0']= tf.convert_to_tensor(currImage, dtype=tf.float32)[None] / 255
-                        data['depth0']= tf.reshape(tf.convert_to_tensor(myDepth, dtype=tf.float32),[1,myDepth.shape[0],myDepth.shape[1]])
+        data={}
 
+        for idx, image in enumerate(list(orderedImages)):
+            image_num=image.split('.')[1].split('/')[-1]
+            currImage=cv2.imread(image,0)
+            currImage = np.reshape(currImage,(1,currImage.shape[0],currImage.shape[1]))
+            for d in list(depth):
+                if (d.split('.')[1].split('/')[-1]==image_num):
+                    # read depth and increment count
+                    myDepth=loadmat(d)['depthOut']
+                    count+=1
+                    if count==1:
+                        if idx==0:
+                            data['image0']= tf.convert_to_tensor(currImage, dtype=tf.float32)[None] / 255
+                            data['depth0']= tf.reshape(tf.convert_to_tensor(myDepth, dtype=tf.float32),[1,myDepth.shape[0],myDepth.shape[1]])
+
+                            
+                            data['T_0to1'] = tf.reshape(tf.convert_to_tensor(giveT()[0]),[1,giveT()[0].shape[0],giveT()[0].shape[1]])
+                            data['T_1to0'] = tf.reshape(tf.convert_to_tensor(giveT()[1]),[1,giveT()[1].shape[0],giveT()[1].shape[1]])
+                            data['K0'] = tf.reshape(tf.convert_to_tensor(giveK()),[1,giveK().shape[0],giveK().shape[1]])
+                            data['K1'] = tf.reshape(tf.convert_to_tensor(giveK()),[1,giveK().shape[0],giveK().shape[1]])
+                        else:
+                            data['image0'] = tf.concat((data['image0'],tf.convert_to_tensor(currImage, dtype=tf.float32)[None] / 255),axis=0)
+                            data['depth0'] = tf.concat((data['depth0'],tf.reshape(tf.convert_to_tensor(myDepth, dtype=tf.float32),[1,myDepth.shape[0],myDepth.shape[1]])),axis=0)
+                            data['T_0to1'] = tf.concat((data['T_0to1'],tf.reshape(tf.convert_to_tensor(giveT()[0]),[1,giveT()[0].shape[0],giveT()[0].shape[1]])),axis=0)
+                            data['T_1to0'] = tf.concat((data['T_1to0'],tf.reshape(tf.convert_to_tensor(giveT()[1]),[1,giveT()[1].shape[0],giveT()[1].shape[1]])),axis=0)
+                            data['K0'] = tf.concat((data['K0'],tf.reshape(tf.convert_to_tensor(giveK()),[1,giveK().shape[0],giveK().shape[1]])),axis=0)
+                            data['K1'] = tf.concat((data['K1'],tf.reshape(tf.convert_to_tensor(giveK()),[1,giveK().shape[0],giveK().shape[1]])),axis=0)
+
+                        break
+                    elif count==2:
+                        if idx==1:
+                            data['image1']= tf.convert_to_tensor(currImage, dtype=tf.float32)[None] / 255
+                            data['depth1']= tf.reshape(tf.convert_to_tensor(myDepth, dtype=tf.float32),[1,myDepth.shape[0],myDepth.shape[1]])
+                        else:
+                            data['image1'] = tf.concat((data['image1'],tf.convert_to_tensor(currImage, dtype=tf.float32)[None] / 255),axis=0)
+                            data['depth1'] = tf.concat((data['depth1'],tf.reshape(tf.convert_to_tensor(myDepth, dtype=tf.float32),[1,myDepth.shape[0],myDepth.shape[1]])),axis=0)
+                        # 
                         
-                        data['T_0to1'] = tf.reshape(tf.convert_to_tensor(giveT()[0]),[1,giveT()[0].shape[0],giveT()[0].shape[1]])
-                        data['T_1to0'] = tf.reshape(tf.convert_to_tensor(giveT()[1]),[1,giveT()[1].shape[0],giveT()[1].shape[1]])
-                        data['K0'] = tf.reshape(tf.convert_to_tensor(giveK()),[1,giveK().shape[0],giveK().shape[1]])
-                        data['K1'] = tf.reshape(tf.convert_to_tensor(giveK()),[1,giveK().shape[0],giveK().shape[1]])
-                    else:
-                        data['image0'] = tf.concat((data['image0'],tf.convert_to_tensor(currImage, dtype=tf.float32)[None] / 255),axis=0)
-                        data['depth0'] = tf.concat((data['depth0'],tf.reshape(tf.convert_to_tensor(myDepth, dtype=tf.float32),[1,myDepth.shape[0],myDepth.shape[1]])),axis=0)
-                        data['T_0to1'] = tf.concat((data['T_0to1'],tf.reshape(tf.convert_to_tensor(giveT()[0]),[1,giveT()[0].shape[0],giveT()[0].shape[1]])),axis=0)
-                        data['T_1to0'] = tf.concat((data['T_1to0'],tf.reshape(tf.convert_to_tensor(giveT()[1]),[1,giveT()[1].shape[0],giveT()[1].shape[1]])),axis=0)
-                        data['K0'] = tf.concat((data['K0'],tf.reshape(tf.convert_to_tensor(giveK()),[1,giveK().shape[0],giveK().shape[1]])),axis=0)
-                        data['K1'] = tf.concat((data['K1'],tf.reshape(tf.convert_to_tensor(giveK()),[1,giveK().shape[0],giveK().shape[1]])),axis=0)
+                        count=0
 
-                    break
-                elif count==2:
-                    if idx==1:
-                        data['image1']= tf.convert_to_tensor(currImage, dtype=tf.float32)[None] / 255
-                        data['depth1']= tf.reshape(tf.convert_to_tensor(myDepth, dtype=tf.float32),[1,myDepth.shape[0],myDepth.shape[1]])
-                    else:
-                        data['image1'] = tf.concat((data['image1'],tf.convert_to_tensor(currImage, dtype=tf.float32)[None] / 255),axis=0)
-                        data['depth1'] = tf.concat((data['depth1'],tf.reshape(tf.convert_to_tensor(myDepth, dtype=tf.float32),[1,myDepth.shape[0],myDepth.shape[1]])),axis=0)
-                    # 
-                    
-                    count=0
-
-    batches.append(data)
+        batches.append(data)
     print("Done Loading Data")
 
     

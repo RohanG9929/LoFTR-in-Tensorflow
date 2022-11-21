@@ -17,6 +17,7 @@ from Training.loadData import read_data
 from plotting_TF import make_matching_figure
 import cv2 as cv
 import matplotlib.cm as cm
+tf.config.run_functions_eagerly(True)
 
 
 config = {'LOFTR': 
@@ -51,13 +52,14 @@ _config = {'loftr': {'backbone_type': 'ResNetFPN',
 checkpointPath = "./Training"
 
 optimizer_1=tf.keras.optimizers.Adam(learning_rate=0.001)
+optimizer_2 = tf.keras.optimizers.experimental.AdamW()
 train_acc_metric = tf.keras.metrics.SparseCategoricalAccuracy()
 val_acc_metric = tf.keras.metrics.SparseCategoricalAccuracy()
 
-matcher=LoFTR(config=_config['loftr']) # to be fixed
-modelLoss=LoFTRLoss(_config) # to be fixed
+matcher=LoFTR(config=_config['loftr']) 
+modelLoss=LoFTRLoss(_config) 
 
-# @tf.function
+@tf.function
 def train_step(data):
     '''
     data is a dictionary containing
@@ -69,24 +71,26 @@ def train_step(data):
         lossData = modelLoss(fineSuperData)#Works?
     
     grads = tape.gradient(lossData['loss'], matcher.trainable_weights)
-    optimizer_1.apply_gradients(zip(grads, matcher.trainable_weights))
+    optimizer_2.apply_gradients(zip(grads, matcher.trainable_weights))
 
     return lossData['loss']
 
 epochs = 10
-scenes = read_data('./Training/Ready','./Training/Ready')#Works
+scenes = read_data('./Training/Scenes/')#Works
 loss_all=[]
 
 for epoch in range(epochs):
     loss=0
     for batch in (scenes):
         loss+=train_step(batch)
-    print(f'loss for epoch {epoch} is {loss}')
+    print(f'loss for epoch {epoch} is {tf.math.reduce_sum(loss)/(len(scenes))}')
     loss_all.append(tf.math.reduce_sum(loss)/(len(scenes)))
 
 
 ######################################################################
 print("Training Done")
+matcher.summary()
+tf.config.run_functions_eagerly(False)
 ######################################################################
 
 #loading in the images for the current batch
