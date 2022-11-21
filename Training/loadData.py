@@ -130,26 +130,13 @@ def read_data(path_imgs,path_depth):#,transf,intrinsics,no_of_pairs=5):
                     count=0
 
     batches.append(data)
-    return batches
+    print("Done Loading Data")
 
-#Right now it is just one batch. In reality there will be multiple batches and each batch will have size N
-            
-                        
-
- 
-# batches = read_data('./Training/Ready','./Training/Ready')
     
-print("Done Loading Data")
-    # ################## camera extrinisics###############
-    # T_left_to_right=np.zeros((4,4))
-    # T_right_to_left=np.zeros((4,4))
-    # T_right_to_left[:3,:3]=np.transpose(T_left_to_right[:3,:3]) # inverse or transpose of rotation matrix
-    # T_right_to_left[:3,3]=np.transpose(T_left_to_right[:3,:3])@T_left_to_right[:3,3]
-    # ##################### intrinsics#######################
-    # k0=np.zeros((3,3))
-    # k1=np.zeros((3,3))
+    return batches
+    
 
-    # ############ update 
+
 
 
 
