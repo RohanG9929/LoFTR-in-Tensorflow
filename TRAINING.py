@@ -64,9 +64,9 @@ def train_step(data):
     '''
     with tf.GradientTape() as tape:
         superVisionData = compute_supervision_coarse(data,config)#Works
-        modelData = matcher(superVisionData, training = True)
-        fineSuperData = compute_supervision_fine(modelData,config)
-        lossData = modelLoss(fineSuperData)
+        modelData = matcher(superVisionData, training = True)#Works
+        fineSuperData = compute_supervision_fine(modelData,config)#Works
+        lossData = modelLoss(fineSuperData)#Works?
     
     grads = tape.gradient(lossData['loss'], matcher.trainable_weights)
     optimizer_1.apply_gradients(zip(grads, matcher.trainable_weights))
@@ -81,7 +81,7 @@ for epoch in range(epochs):
     loss=0
     for batch in (scenes):
         loss+=train_step(batch)
-    print(f'loss for epoch{epoch} is {loss}')
+    print(f'loss for epoch {epoch} is {loss}')
     loss_all.append(tf.math.reduce_sum(loss)/(len(scenes)))
 
 
@@ -92,10 +92,8 @@ print("Training Done")
 #loading in the images for the current batch
 img0_pth = "./Training/Ready/603.jpg"
 img1_pth = "./Training/Ready/604.jpg"
-img0_raw = cv.imread(img0_pth, cv.IMREAD_GRAYSCALE)
-img1_raw = cv.imread(img1_pth, cv.IMREAD_GRAYSCALE)
-img0_raw = cv.resize(img0_raw, (640, 480))
-img1_raw = cv.resize(img1_raw, (640, 480))
+img0_raw = cv.resize(cv.imread(img0_pth, cv.IMREAD_GRAYSCALE), (640, 480))
+img1_raw = cv.resize(cv.imread(img1_pth, cv.IMREAD_GRAYSCALE), (640, 480))
 
 img0 = tf.convert_to_tensor(img0_raw)[None][None]/255
 img1 = tf.convert_to_tensor(img1_raw)[None][None]/255
