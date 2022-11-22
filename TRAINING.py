@@ -51,7 +51,7 @@ _config = {'loftr': {'backbone_type': 'ResNetFPN',
 
 checkpointPath = "./Training"
 
-optimizer_1=tf.keras.optimizers.Adam(learning_rate=0.001)
+optimizer_1=tf.keras.optimizers.Adam(learning_rate=0.1)
 optimizer_2 = tf.keras.optimizers.experimental.AdamW()
 train_acc_metric = tf.keras.metrics.SparseCategoricalAccuracy()
 val_acc_metric = tf.keras.metrics.SparseCategoricalAccuracy()
@@ -71,11 +71,11 @@ def train_step(data):
         lossData = modelLoss(fineSuperData)#Works?
     
     grads = tape.gradient(lossData['loss'], matcher.trainable_weights)
-    optimizer_2.apply_gradients(zip(grads, matcher.trainable_weights))
+    optimizer_1.apply_gradients(zip(grads, matcher.trainable_weights))
 
     return lossData['loss']
 
-epochs = 10
+epochs = 3
 scenes = read_data('./Training/Scenes/')#Works
 loss_all=[]
 

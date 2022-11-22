@@ -7,7 +7,7 @@ INF = 1e9
 def mask_border(m, b: int, v):
     """ Mask borders with value
     Args:
-        m (torch.Tensor): [N, H0, W0, H1, W1]
+        m (tf.Tensor): [N, H0, W0, H1, W1]
         b (int)
         v (m.dtype)
     """
@@ -63,15 +63,15 @@ def compute_max_candidates(p_m0, p_m1):
     """Compute the max candidates of all pairs within a batch
     
     Args:
-        p_m0, p_m1 (torch.Tensor): padded masks
+        p_m0, p_m1 (tf.Tensor): padded masks
     """
     # h0s, w0s = p_m0.sum(1).max(-1)[0], p_m0.sum(-1).max(-1)[0]
     h0s, w0s = tf.math.reduce_max(tf.math.reduce_sum(p_m0, 1),-1)[0], tf.math.reduce_max(tf.math.reduce_sum(p_m0, -1),-1)[0]
     # h1s, w1s = p_m1.sum(1).max(-1)[0], p_m1.sum(-1).max(-1)[0]
     h1s, w1s = tf.math.reduce_max(tf.math.reduce_sum(p_m1, 1),-1)[0], tf.math.reduce_max(tf.math.reduce_sum(p_m1, -1),-1)[0]
 
-    # max_cand = torch.sum(
-    #     torch.min(torch.stack([h0s * w0s, h1s * w1s], -1), -1)[0])
+    # max_cand = tf.sum(
+    #     tf.min(tf.stack([h0s * w0s, h1s * w1s], -1), -1)[0])
 
     max_cand = tf.math.reduce_sum(tf.math.reduce_min(tf.stack([h0s * w0s, h1s * w1s], -1), -1)[0])
 
@@ -100,7 +100,7 @@ class CoarseMatching(tf.keras.Model):
             #     raise ImportError("download superglue.py first!")
             # self.log_optimal_transport = log_optimal_transport
             # self.bin_score = nn.Parameter(
-            #     torch.tensor(config['skh_init_bin_score'], requires_grad=True))
+            #     tf.tensor(config['skh_init_bin_score'], requires_grad=True))
             # self.skh_iters = config['skh_iters']
             # self.skh_prefilter = config['skh_prefilter']
         # else:
@@ -109,20 +109,20 @@ class CoarseMatching(tf.keras.Model):
     def call(self, feat_c0, feat_c1, data, mask_c0=None, mask_c1=None, training = False):
         """
         Args:
-            feat0 (torch.Tensor): [N, L, C]
-            feat1 (torch.Tensor): [N, S, C]
+            feat0 (tf.Tensor): [N, L, C]
+            feat1 (tf.Tensor): [N, S, C]
             data (dict)
-            mask_c0 (torch.Tensor): [N, L] (optional)
-            mask_c1 (torch.Tensor): [N, S] (optional)
+            mask_c0 (tf.Tensor): [N, L] (optional)
+            mask_c1 (tf.Tensor): [N, S] (optional)
         Update:
             data (dict): {
-                'b_ids' (torch.Tensor): [M'],
-                'i_ids' (torch.Tensor): [M'],
-                'j_ids' (torch.Tensor): [M'],
-                'gt_mask' (torch.Tensor): [M'],
-                'mkpts0_c' (torch.Tensor): [M, 2],
-                'mkpts1_c' (torch.Tensor): [M, 2],
-                'mconf' (torch.Tensor): [M]}
+                'b_ids' (tf.Tensor): [M'],
+                'i_ids' (tf.Tensor): [M'],
+                'j_ids' (tf.Tensor): [M'],
+                'gt_mask' (tf.Tensor): [M'],
+                'mkpts0_c' (tf.Tensor): [M, 2],
+                'mkpts1_c' (tf.Tensor): [M, 2],
+                'mconf' (tf.Tensor): [M]}
             NOTE: M' != M during training.
         """
         N, L, S, C = feat_c0.get_shape().as_list()[0], feat_c0.get_shape().as_list()[1], feat_c1.get_shape().as_list()[1], feat_c0.get_shape().as_list()[2]
@@ -171,22 +171,22 @@ class CoarseMatching(tf.keras.Model):
         data.update(**self.get_coarse_match(conf_matrix, data, training))
         return data
 
-    # @torch.no_grad()
+    # @tf.no_grad()
     def get_coarse_match(self, conf_matrix, data, training):
         """
         Args:
-            conf_matrix (torch.Tensor): [N, L, S]
+            conf_matrix (tf.Tensor): [N, L, S]
             data (dict): with keys ['hw0_i', 'hw1_i', 'hw0_c', 'hw1_c']
         Returns:
             coarse_matches (dict): {
-                'b_ids' (torch.Tensor): [M'],
-                'i_ids' (torch.Tensor): [M'],
-                'j_ids' (torch.Tensor): [M'],
-                'gt_mask' (torch.Tensor): [M'],
-                'm_bids' (torch.Tensor): [M],
-                'mkpts0_c' (torch.Tensor): [M, 2],
-                'mkpts1_c' (torch.Tensor): [M, 2],
-                'mconf' (torch.Tensor): [M]}
+                'b_ids' (tf.Tensor): [M'],
+                'i_ids' (tf.Tensor): [M'],
+                'j_ids' (tf.Tensor): [M'],
+                'gt_mask' (tf.Tensor): [M'],
+                'm_bids' (tf.Tensor): [M],
+                'mkpts0_c' (tf.Tensor): [M, 2],
+                'mkpts1_c' (tf.Tensor): [M, 2],
+                'mconf' (tf.Tensor): [M]}
         """
         axes_lengths = {
             'h0c': data['hw0_c'][0],
@@ -252,10 +252,10 @@ class CoarseMatching(tf.keras.Model):
 
             # pred_indices is to select from prediction
             if num_matches_pred <= num_matches_train - self.train_pad_num_gt_min:
-                # pred_indices = torch.arange(num_matches_pred, device=_device)
+                # pred_indices = tf.arange(num_matches_pred, device=_device)
                 pred_indices = tf.range(num_matches_pred)
             else:
-                # pred_indices = torch.randint(
+                # pred_indices = tf.randint(
                 #     num_matches_pred,
                 #     (num_matches_train - self.train_pad_num_gt_min, ),
                 #     device=_device)
@@ -263,8 +263,8 @@ class CoarseMatching(tf.keras.Model):
                     (num_matches_train - self.train_pad_num_gt_min, ), maxval = num_matches_pred, dtype = tf.int32)              
 
             # gt_pad_indices is to select from gt padding. e.g. max(3787-4800, 200)
-            # gt_pad_indices = torch.randint(len(data['spv_b_ids']),(max(num_matches_train - num_matches_pred,self.train_pad_num_gt_min), ),device=_device)
-            # mconf_gt = torch.zeros(len(data['spv_b_ids']), device=_device)  # set conf of gt paddings to all zero
+            # gt_pad_indices = tf.randint(len(data['spv_b_ids']),(max(num_matches_train - num_matches_pred,self.train_pad_num_gt_min), ),device=_device)
+            # mconf_gt = tf.zeros(len(data['spv_b_ids']), device=_device)  # set conf of gt paddings to all zero
 
             gt_pad_indices = tf.random.uniform(
                     (max(num_matches_train - num_matches_pred,

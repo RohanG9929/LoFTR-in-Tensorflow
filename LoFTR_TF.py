@@ -31,10 +31,10 @@ class LoFTR(tf.keras.Model):
         """ 
         Update:
             data (dict): {
-                'image0': (torch.Tensor): (N, 1, H, W)
-                'image1': (torch.Tensor): (N, 1, H, W)
-                'mask0'(optional) : (torch.Tensor): (N, H, W) '0' indicates a padded position
-                'mask1'(optional) : (torch.Tensor): (N, H, W)
+                'image0': (tf.Tensor): (N, 1, H, W)
+                'image1': (tf.Tensor): (N, 1, H, W)
+                'mask0'(optional) : (tf.Tensor): (N, H, W) '0' indicates a padded position
+                'mask1'(optional) : (tf.Tensor): (N, H, W)
             }
         """
         ################################################################################################################
@@ -66,6 +66,7 @@ class LoFTR(tf.keras.Model):
             'hw0_f': feat_f0.shape[2:], 'hw1_f': feat_f1.shape[2:]
         })
         print('Module 1 Done')
+        
         ################################################################################################################
         # 2. Coarse-level loftr module
         ################################################################################################################
@@ -77,13 +78,14 @@ class LoFTR(tf.keras.Model):
         # if 'mask0' in data:
         #     mask_c0, mask_c1 = data['mask0'].flatten(-2), data['mask1'].flatten(-2) 
         feat_c0, feat_c1 = self.loftr_coarse(feat_c0, feat_c1, mask_c0, mask_c1)
-
         print('Module 2 Done')
+
         ################################################################################################################
         # 3. Match coarse-level
         ################################################################################################################
         data = self.coarse_matching(feat_c0, feat_c1, data, mask_c0=mask_c0, mask_c1=mask_c1, training=training)
         print('Module 3 Done')
+
         ################################################################################################################
         # 4. Fine-level refinement
         ################################################################################################################
@@ -91,6 +93,7 @@ class LoFTR(tf.keras.Model):
         if feat_f0_unfold.shape[0] != 0:  # at least one coarse level predicted
             feat_f0_unfold, feat_f1_unfold = self.loftr_fine(feat_f0_unfold, feat_f1_unfold)
         print('Module 4 Done')
+
         ################################################################################################################
         # 5. Match fine-level
         ################################################################################################################
