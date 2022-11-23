@@ -121,7 +121,7 @@ def spvs_coarse(data, config):
     correct_0to1[:, 0] = False  # ignore the top-left corner
     correct_0to1 = tf.convert_to_tensor(correct_0to1)
 
-    # 4. construct a gt conf_matrix -------------------------FIX THIS
+    # 4. construct a gt conf_matrix
     conf_matrix_gt = tf.zeros([N, h0*w0, h1*w1])
     temp = tf.where(correct_0to1 != False)
     b_ids, i_ids = temp[:,0], temp[:,1]

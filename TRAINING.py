@@ -94,8 +94,8 @@ tf.config.run_functions_eagerly(False)
 ######################################################################
 
 #loading in the images for the current batch
-img0_pth = "./Training/Ready/603.jpg"
-img1_pth = "./Training/Ready/604.jpg"
+img0_pth = "./Training/Scenes/scene1/Images/603.jpg"
+img1_pth = "./Training/Scenes/scene1/Images/604.jpg"
 img0_raw = cv.resize(cv.imread(img0_pth, cv.IMREAD_GRAYSCALE), (640, 480))
 img1_raw = cv.resize(cv.imread(img1_pth, cv.IMREAD_GRAYSCALE), (640, 480))
 
