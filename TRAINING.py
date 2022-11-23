@@ -17,6 +17,7 @@ from Training.loadData import read_data
 from plotting_TF import make_matching_figure
 import cv2 as cv
 import matplotlib.cm as cm
+from loguru import logger
 tf.config.run_functions_eagerly(True)
 
 
@@ -59,6 +60,9 @@ val_acc_metric = tf.keras.metrics.SparseCategoricalAccuracy()
 matcher=LoFTR(config=_config['loftr']) 
 modelLoss=LoFTRLoss(_config) 
 
+##############################
+
+##############################
 @tf.function
 def train_step(data):
     '''
@@ -72,6 +76,7 @@ def train_step(data):
     
     grads = tape.gradient(lossData['loss'], matcher.trainable_weights)
     optimizer_1.apply_gradients(zip(grads, matcher.trainable_weights))
+    print("Weights Updated")
 
     return lossData['loss']
 
@@ -79,6 +84,7 @@ epochs = 3
 scenes = read_data('./Training/Scenes/')#Works
 loss_all=[]
 
+logger.info(f"Trainer initialized!")
 for epoch in range(epochs):
     loss=0
     for batch in (scenes):
@@ -88,7 +94,7 @@ for epoch in range(epochs):
 
 
 ######################################################################
-print("Training Done")
+logger.info(f"Trainer Done!")
 matcher.summary()
 tf.config.run_functions_eagerly(False)
 ######################################################################

@@ -106,27 +106,32 @@ def spvs_coarse(data, config):
 
     nearest_index0 = nearest_index0.numpy()
     nearest_index0[out_bound_mask(w_pt1_c_round, w0, h0).numpy()] = 0
-    nearest_index1 = tf.convert_to_tensor(nearest_index1)
+    nearest_index0 = tf.convert_to_tensor(nearest_index0)
+
+    # loop_back = tf.stack([nearest_index0.numpy()[_b][tf.cast(_i,tf.int32)] for _b, _i in enumerate(nearest_index1)],axis=0) # (N, L)
+
 
     import numpy as np
-    loop_back = np.zeros((nearest_index1.shape[0],4800))
+    loop_back = np.zeros((nearest_index1.shape[0],nearest_index1.shape[1]))
     for _b, _i in enumerate(nearest_index1):
         for a in range(_i.shape[0]):
-                loop_back[_b,a] = nearest_index0[_b][a]
-    loop_back = tf.convert_to_tensor(loop_back,dtype=tf.float32) # (N, L)
+                loop_back[_b,int(_i[a])] = nearest_index0[_b][int(_i[a])]
+    loop_back = tf.convert_to_tensor(loop_back,dtype=tf.float32)
 
-    # loop_back = tf.stack([nearest_index0[_b][_i] for _b, _i in enumerate(nearest_index1)], axis=0)
     correct_0to1 = loop_back == tf.cast(tf.repeat(tf.range(h0*w0)[None],N,axis=0),tf.float32)   
     correct_0to1 = correct_0to1.numpy()
     correct_0to1[:, 0] = False  # ignore the top-left corner
     correct_0to1 = tf.convert_to_tensor(correct_0to1)
 
+
+
+
     # 4. construct a gt conf_matrix
     conf_matrix_gt = tf.zeros([N, h0*w0, h1*w1])
     temp = tf.where(correct_0to1 != False)
     b_ids, i_ids = temp[:,0], temp[:,1]
-    j_ids = tf.gather_nd(nearest_index1, list(zip(b_ids,i_ids)))
-    
+    j_ids = tf.convert_to_tensor(nearest_index1.numpy()[b_ids.numpy(),i_ids.numpy()])#tf.gather_nd(tf.cast(nearest_index1,tf.int64), list(zip(b_ids,i_ids)))
+
     
     conf_matrix_gt = conf_matrix_gt.numpy()
     conf_matrix_gt[b_ids.numpy().astype(int), i_ids.numpy().astype(int), j_ids.numpy().astype(int)] = 1
@@ -137,11 +142,11 @@ def spvs_coarse(data, config):
 
     # 5. save coarse matches(gt) for training fine level
     if len(b_ids) == 0:
-        logger.warning(f"No groundtruth coarse match found for: {data['pair_names']}")
+        logger.warning(f"No groundtruth coarse match found")
         # this won't affect fine-level loss calculation
-        b_ids = tf.tensor([0])
-        i_ids = tf.tensor([0])
-        j_ids = tf.tensor([0])
+        b_ids = tf.constant([0])
+        i_ids = tf.constant([0])
+        j_ids = tf.constant([0])
 
     data.update({
         'spv_b_ids': b_ids,
