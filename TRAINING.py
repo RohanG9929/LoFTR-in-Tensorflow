@@ -69,7 +69,7 @@ def train_step(data):
     data is a dictionary containing
     '''
     with tf.GradientTape() as tape:
-        superVisionData = compute_supervision_coarse(data,config)#Works
+        superVisionData = compute_supervision_coarse(data,config)#Ground Truth generation
         modelData = matcher(superVisionData, training = True)#Works
         fineSuperData = compute_supervision_fine(modelData,config)#Works
         lossData = modelLoss(fineSuperData)#Works?

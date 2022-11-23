@@ -62,7 +62,6 @@ class FineMatching(tf.keras.Model):
 
         # compute absolute kpt coords
         data = self.get_fine_match(coords_normalized, data)
-        print("module 5 Done")
         return data
 
 

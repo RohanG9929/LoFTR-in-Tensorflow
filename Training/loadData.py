@@ -42,20 +42,20 @@ def giveT():
     T1_to_0[-1,-1] = 1
     # print(T1_to_0)
 
-    return T0_to_1, T1_to_0
+    return T1_to_0,T0_to_1
 
 def read_data(scene_path):#,transf,intrinsics,no_of_pairs=5):
     '''
-    returns a dictionary containing the data
+    returns a list of dictionaries. Each dictionary containing the data
      data = {
             'image0': image0,  # (N, 1, h, w)
             'depth0': depth0,  # (N, h, w)
-            'image1': image1,
-            'depth1': depth1,
+            'image1': image1,  # (N, 1, h, w)
+            'depth1': depth1,  # (N, h, w)
             'T_left_to_right': T_0to1,  # (N, 4, 4)
-            'T_right_to_left': T_1to0,
+            'T_right_to_left': T_1to0,  # (N, 4, 4)
             'K0': K_0,  # (N, 3, 3)
-            'K1': K_1,
+            'K1': K_1,  # (N, 3, 3)
 
 
             N is number of pairs
@@ -70,7 +70,7 @@ def read_data(scene_path):#,transf,intrinsics,no_of_pairs=5):
         }
 
     '''
-    batches=[]
+    scenes=[]
     numScenes = os.listdir(scene_path)
     try:
         numScenes.remove('.DS_Store')
@@ -135,15 +135,14 @@ def read_data(scene_path):#,transf,intrinsics,no_of_pairs=5):
                         else:
                             data['image1'] = tf.concat((data['image1'],tf.convert_to_tensor(currImage, dtype=tf.float32)[None] / 255),axis=0)
                             data['depth1'] = tf.concat((data['depth1'],tf.reshape(tf.convert_to_tensor(myDepth, dtype=tf.float32),[1,myDepth.shape[0],myDepth.shape[1]])),axis=0)
-                        # 
                         
                         count=0
 
-        batches.append(data)
+        scenes.append(data)
     print("Done Loading Data")
 
     
-    return batches
+    return scenes
     
 
 
