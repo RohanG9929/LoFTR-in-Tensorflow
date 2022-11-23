@@ -90,10 +90,10 @@ def spvs_coarse(data, config):
     w_pt1_c = w_pt1_i / scale0
 
     # 3. check if mutual nearest neighbor
-    w_pt0_c_round = tf.cast(tf.math.round(w_pt0_c[:, :, :]),dtype=tf.float32)
+    w_pt0_c_round = tf.cast(tf.math.round(w_pt0_c[:, :, :]),dtype=tf.int64)
     
     nearest_index1 = w_pt0_c_round[..., 0] + w_pt0_c_round[..., 1] * w1
-    w_pt1_c_round = tf.cast(tf.math.round(w_pt1_c[:, :, :]),dtype=tf.float32)
+    w_pt1_c_round = tf.cast(tf.math.round(w_pt1_c[:, :, :]),dtype=tf.int64)
     nearest_index0 = w_pt1_c_round[..., 0] + w_pt1_c_round[..., 1] * w0
 
     # corner case: out of boundary
@@ -108,21 +108,20 @@ def spvs_coarse(data, config):
     nearest_index0[out_bound_mask(w_pt1_c_round, w0, h0).numpy()] = 0
     nearest_index0 = tf.convert_to_tensor(nearest_index0)
 
-    # loop_back = tf.stack([nearest_index0.numpy()[_b][tf.cast(_i,tf.int32)] for _b, _i in enumerate(nearest_index1)],axis=0) # (N, L)
+    loop_back = tf.stack([nearest_index0.numpy()[_b][tf.cast(_i,tf.int32)] for _b, _i in enumerate(nearest_index1)],axis=0) # (N, L)
 
 
-    import numpy as np
-    loop_back = np.zeros((nearest_index1.shape[0],nearest_index1.shape[1]))
-    for _b, _i in enumerate(nearest_index1):
-        for a in range(_i.shape[0]):
-                loop_back[_b,int(_i[a])] = nearest_index0[_b][int(_i[a])]
-    loop_back = tf.convert_to_tensor(loop_back,dtype=tf.float32)
+    # import numpy as np
+    # loop_back = np.zeros((nearest_index1.shape[0],nearest_index1.shape[1]))
+    # for _b, _i in enumerate(nearest_index1):
+    #     for a in range(_i.shape[0]):
+    #             loop_back[_b,int(_i[a])] = nearest_index0[_b][int(_i[a])]
+    # loop_back = tf.convert_to_tensor(loop_back)
 
-    correct_0to1 = loop_back == tf.cast(tf.repeat(tf.range(h0*w0)[None],N,axis=0),tf.float32)   
+    correct_0to1 = loop_back == tf.repeat(tf.range(h0*w0)[None],N,axis=0) 
     correct_0to1 = correct_0to1.numpy()
     correct_0to1[:, 0] = False  # ignore the top-left corner
     correct_0to1 = tf.convert_to_tensor(correct_0to1)
-
 
 
 
@@ -130,7 +129,7 @@ def spvs_coarse(data, config):
     conf_matrix_gt = tf.zeros([N, h0*w0, h1*w1])
     temp = tf.where(correct_0to1 != False)
     b_ids, i_ids = temp[:,0], temp[:,1]
-    j_ids = tf.convert_to_tensor(nearest_index1.numpy()[b_ids.numpy(),i_ids.numpy()])#tf.gather_nd(tf.cast(nearest_index1,tf.int64), list(zip(b_ids,i_ids)))
+    j_ids = tf.convert_to_tensor(nearest_index1.numpy()[b_ids.numpy(),i_ids.numpy()],dtype=tf.int64)#tf.gather_nd(tf.cast(nearest_index1,tf.int64), list(zip(b_ids,i_ids)))
 
     
     conf_matrix_gt = conf_matrix_gt.numpy()

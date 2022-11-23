@@ -40,8 +40,8 @@ def warp_kpts(kpts0, depth0, depth1, T_0to1, K0, K1):
     kpts0_h = tf.concat([kpts0, temp], axis=-1).numpy() * kpts0_depth[..., None].numpy()  # (N, L, 3)
     kpts0_h = tf.convert_to_tensor(kpts0_h)
 
-    kpts0_cam = tf.linalg.inv(K0) @ tf.transpose(kpts0_h,[0,2,1])  # (N, 3, L)
-
+    kpts0_cam = tf.linalg.inv(K0).numpy() @ tf.transpose(kpts0_h,[0,2,1]).numpy()  # (N, 3, L)
+    kpts0_cam = tf.convert_to_tensor(kpts0_cam)
     # Rigid Transform
     tempT_0to1 = T_0to1.numpy()
     w_kpts0_cam = T_0to1[:, :3, :3].numpy() @ kpts0_cam.numpy() + tempT_0to1[:, :3, [3]]    # (N, 3, L)
@@ -49,7 +49,7 @@ def warp_kpts(kpts0, depth0, depth1, T_0to1, K0, K1):
     w_kpts0_depth_computed = w_kpts0_cam[:, 2, :]
 
     # Project
-    w_kpts0_h = tf.transpose((K1 @ w_kpts0_cam),[0,2,1])  # (N, L, 3)
+    w_kpts0_h = tf.transpose((K1.numpy() @ w_kpts0_cam.numpy()),[0,2,1])  # (N, L, 3)
     w_kpts0 = w_kpts0_h[:, :, :2].numpy() / (w_kpts0_h.numpy()[:, :, [2]] + 1e-4)  # (N, L, 2), +1e-4 to avoid zero depth
     w_kpts0 = tf.convert_to_tensor(w_kpts0)
 

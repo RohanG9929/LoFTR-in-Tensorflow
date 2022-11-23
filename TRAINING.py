@@ -1,5 +1,5 @@
 # 1- define optimizer
-# 2-one step through optimizer
+# 2- one step through optimizer
 # 3- train val inference
 # 4-  training_step
 # 5- training epoch end
@@ -125,7 +125,7 @@ text = [
 fig = make_matching_figure(img0_raw, img1_raw, mkpts0, mkpts1, color, text=text)
 
 # Calling `save('my_model')` creates a SavedModel folder `my_model`.
-matcher.save("my_model")
+# matcher.save("my_model")
 
 # It can be used to reconstruct the model identically.
 # reconstructed_model = tf.keras.models.load_model("my_model")

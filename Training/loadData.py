@@ -93,6 +93,7 @@ def read_data(scene_path):#,transf,intrinsics,no_of_pairs=5):
         for file in images:
             fileNums.append(int(file.split('.')[1].split('/')[-1]))
         fileNums.sort()
+        # print(fileNums)
 
         for num in fileNums:
             orderedImages.append(""+scene_path+"/"+s+"/Images/"+str(num)+".jpg")

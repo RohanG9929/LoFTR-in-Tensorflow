@@ -33,14 +33,22 @@ class LoFTRLoss(tf.keras.Model):
         # corner case: no gt coarse-level match at all
         #if not pos_mask.any():  # assign a wrong gt
         if not tf.reduce_any(pos_mask):
+            pos_mask = pos_mask.numpy()
             pos_mask[0, 0, 0] = True
+            pos_mask = tf.convert_to_tensor(pos_mask)
             if weight is not None:
+                weight = weight.numpy()
                 weight[0, 0, 0] = 0.
+                weight = tf.convert_to_tensor(weight)
             c_pos_w = 0.
         if not tf.reduce_any(neg_mask):
+            neg_mask = neg_mask.numpy()
             neg_mask[0, 0, 0] = True
+            neg_mask = tf.convert_to_tensor(neg_mask)
             if weight is not None:
+                weight = weight.numpy()
                 weight[0, 0, 0] = 0.
+                weight = tf.convert_to_tensor(weight)
             c_neg_w = 0.
 
         if self.loss_config['coarse_type'] == 'cross_entropy':
@@ -146,8 +154,13 @@ class LoFTRLoss(tf.keras.Model):
             if training:  # this seldomly happen during training, since we pad prediction with gt
                                # sometimes there is not coarse-level gt at all.
                 logger.warning("assign a false supervision to avoid ddp deadlock")
+                correct_mask = correct_mask.numpy()
                 correct_mask[0] = True
+                correct_mask = tf.convert_to_tensor(correct_mask)
+
+                weight = weight.numpy()
                 weight[0] = 0.
+                weight = tf.convert_to_tensor(weight)
             else:
                 return None
 
