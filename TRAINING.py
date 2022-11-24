@@ -80,7 +80,7 @@ def train_step(data):
 
     return lossData['loss']
 
-epochs = 3
+epochs = 7
 scenes = read_data('./Training/Scenes/')#Works
 loss_all=[]
 
@@ -95,6 +95,7 @@ for epoch in range(epochs):
 
 ######################################################################
 logger.info(f"Trainer Done!")
+print(loss_all)
 matcher.summary()
 tf.config.run_functions_eagerly(False)
 ######################################################################

@@ -42,7 +42,7 @@ def giveT():
     T1_to_0[-1,-1] = 1
     # print(T1_to_0)
 
-    return T1_to_0,T0_to_1
+    return T0_to_1,T1_to_0
 
 def read_data(scene_path):#,transf,intrinsics,no_of_pairs=5):
     '''

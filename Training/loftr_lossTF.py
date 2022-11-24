@@ -169,7 +169,7 @@ class LoFTRLoss(tf.keras.Model):
         offset_l2=tf.math.reduce_sum((expec_f_gt.numpy()[correct_mask.numpy()] - expec_f.numpy()[correct_mask.numpy(), :2]) ** 2,axis=-1)
 
         #loss = (offset_l2 * weight[correct_mask]).mean()
-        loss=tf.math.reduce_mean(offset_l2 * weight[correct_mask])
+        loss= tf.math.reduce_mean(offset_l2 * weight[correct_mask])
 
         return loss
     
