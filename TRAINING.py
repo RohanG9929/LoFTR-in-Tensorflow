@@ -126,6 +126,7 @@ text = [
 ]
 fig = make_matching_figure(img0_raw, img1_raw, mkpts0, mkpts1, color, text=text)
 
+print("DONE")
 # Calling `save('my_model')` creates a SavedModel folder `my_model`.
 # matcher.save("my_model")
 

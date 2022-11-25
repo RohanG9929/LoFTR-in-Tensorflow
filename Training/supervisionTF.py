@@ -195,7 +195,7 @@ def spvs_fine(data, config):
     # 3. compute gt
     scale = scale * data['scale1'].numpy()[b_ids.numpy()] if 'scale0' in data else scale
     # `expec_f_gt` might exceed the window, i.e. abs(*) > 1, which would be filtered later
-    expec_f_gt = (w_pt0_i.numpy()[b_ids.numpy(), i_ids.numpy()] - pt1_i.numpy()[b_ids.numpy(), j_ids.numpy()]) / scale / radius  # [M, 2]
+    expec_f_gt = (w_pt0_i.numpy()[b_ids.numpy(), i_ids.numpy()] - pt1_i.numpy()[b_ids.numpy(), tf.cast(j_ids,tf.int64).numpy()]) / scale / radius  # [M, 2]
     expec_f_gt = tf.convert_to_tensor(expec_f_gt)
     data.update({"expec_f_gt": expec_f_gt})
     return data
