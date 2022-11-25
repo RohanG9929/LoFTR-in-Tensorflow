@@ -91,7 +91,7 @@ for epoch in range(epochs):
     for batch in ((scenes)):
         loss+=train_step(batch)
     print(f'loss for epoch {epoch} is {tf.math.reduce_sum(loss)/(len(scenes))}')
-    loss_all.append(tf.math.reduce_sum(loss)/(len(scenes)))
+    loss_all.append(float(tf.math.reduce_sum(loss)/(len(scenes))))
 
 
 ######################################################################
