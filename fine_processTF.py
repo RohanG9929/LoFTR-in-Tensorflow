@@ -56,12 +56,12 @@ class FinePreprocess(tf.keras.Model):
         feat_f0_unfold = feat_f0_unfold.numpy()[data['b_ids'].numpy(), data['i_ids'].numpy()]  # [n, ww, cf]
         feat_f0_unfold = tf.convert_to_tensor(feat_f0_unfold)
 
-        feat_f1_unfold = feat_f1_unfold.numpy()[data['b_ids'].numpy(), data['j_ids'].numpy()]
+        feat_f1_unfold = feat_f1_unfold.numpy()[data['b_ids'].numpy(), tf.cast(data['j_ids'],tf.int64).numpy()]
         feat_f1_unfold = tf.convert_to_tensor(feat_f1_unfold)
         # option: use coarse-level loftr feature as context: concat and linear
         if self.cat_c_feat:
-            feat_c_win = self.down_proj(tf.concat([feat_c0.numpy()[data['b_ids'].numpy(), data['i_ids'].numpy()],
-                                                   feat_c1.numpy()[data['b_ids'].numpy(), data['j_ids'].numpy()]], axis=0))  # [2n, c]
+            feat_c_win = self.down_proj(tf.concat([feat_c0.numpy()[data['b_ids'].numpy(),tf.cast(data['j_ids'],tf.int64).numpy()],
+                                                   feat_c1.numpy()[data['b_ids'].numpy(), tf.cast(data['j_ids'],tf.int64).numpy()]], axis=0))  # [2n, c]
             feat_cf_win = self.merge_feat(tf.concat([
                 tf.concat([feat_f0_unfold, feat_f1_unfold], axis=0),  # [2n, ww, cf]
                 repeat(feat_c_win, 'n c -> n ww c', ww=W**2),  # [2n, ww, cf]
