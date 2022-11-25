@@ -70,11 +70,11 @@ def spvs_coarse(data, config):
     grid_pt0_c = tf.reshape(grid_pt0_c,[1, h0*w0, 2])
     grid_pt0_c = tf.repeat(grid_pt0_c,N,axis=0)    # [N, hw, 2]
 
-    grid_pt0_i = scale0 * grid_pt0_c
+    grid_pt0_i = tf.cast(scale0,tf.double) * grid_pt0_c
     grid_pt1_c = create_mesh(h1, w1, False)
     grid_pt1_c = tf.reshape(grid_pt1_c,[1, h1*w1, 2])
     grid_pt1_c = tf.repeat(grid_pt1_c,N,axis=0)
-    grid_pt1_i = scale1 * grid_pt1_c
+    grid_pt1_i = tf.cast(scale1,tf.double) * grid_pt1_c
 
     # mask padded region to (0, 0), so no need to manually mask conf_matrix_gt
     if 'mask0' in data:
@@ -193,7 +193,7 @@ def spvs_fine(data, config):
     b_ids, i_ids, j_ids = data['b_ids'], data['i_ids'], data['j_ids']
 
     # 3. compute gt
-    scale = scale * data['scale1'][b_ids] if 'scale0' in data else scale
+    scale = scale * data['scale1'].numpy()[b_ids.numpy()] if 'scale0' in data else scale
     # `expec_f_gt` might exceed the window, i.e. abs(*) > 1, which would be filtered later
     expec_f_gt = (w_pt0_i.numpy()[b_ids.numpy(), i_ids.numpy()] - pt1_i.numpy()[b_ids.numpy(), j_ids.numpy()]) / scale / radius  # [M, 2]
     expec_f_gt = tf.convert_to_tensor(expec_f_gt)

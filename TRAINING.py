@@ -13,11 +13,12 @@ from LoFTR_TF import LoFTR
 # os.chdir("LoFTR-in-Tensorflow")
 from Training.supervisionTF import compute_supervision_coarse, compute_supervision_fine
 from Training.loftr_lossTF import LoFTRLoss
-from Training.loadData import read_data
+from Training.loadMD import read_data
 from plotting_TF import make_matching_figure
 import cv2 as cv
 import matplotlib.cm as cm
 from loguru import logger
+from tqdm import tqdm
 tf.config.run_functions_eagerly(True)
 
 
@@ -81,13 +82,13 @@ def train_step(data):
     return lossData['loss']
 
 epochs = 7
-scenes = read_data('./Training/Scenes/')#Works
+scenes = read_data(batch_size=4)#read_data('./Training/Scenes/')#Works
 loss_all=[]
 
 logger.info(f"Trainer initialized!")
 for epoch in range(epochs):
     loss=0
-    for batch in (scenes):
+    for batch in ((scenes)):
         loss+=train_step(batch)
     print(f'loss for epoch {epoch} is {tf.math.reduce_sum(loss)/(len(scenes))}')
     loss_all.append(tf.math.reduce_sum(loss)/(len(scenes)))

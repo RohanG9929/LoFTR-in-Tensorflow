@@ -90,9 +90,10 @@ class LoFTR(tf.keras.Model):
         # 4. Fine-level refinement
         ################################################################################################################
         feat_f0_unfold, feat_f1_unfold, data = self.fine_preprocess(feat_f0, feat_f1, feat_c0, feat_c1, data)
+        print('Module 4 Done')
         if feat_f0_unfold.shape[0] != 0:  # at least one coarse level predicted
             feat_f0_unfold, feat_f1_unfold = self.loftr_fine(feat_f0_unfold, feat_f1_unfold)
-        print('Module 4 Done')
+        print('Module 4-2 Done')
 
         ################################################################################################################
         # 5. Match fine-level

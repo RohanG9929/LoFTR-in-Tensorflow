@@ -279,8 +279,8 @@ class CoarseMatching(tf.keras.Model):
 
         # 4. Update with matches in original image resolution
         scale = data['image0'].shape[2:][0] / data['hw0_c'][0]
-        scale0 = scale * data['scale0'][b_ids] if 'scale0' in data else scale
-        scale1 = scale * data['scale1'][b_ids] if 'scale1' in data else scale
+        scale0 = scale * data['scale0'].numpy()[b_ids.numpy()] if 'scale0' in data else scale
+        scale1 = scale * data['scale1'].numpy()[b_ids.numpy()] if 'scale1' in data else scale
         mkpts0_c_np = np.stack(
             [i_ids % data['hw0_c'][1], i_ids // data['hw0_c'][1]],
             axis=1) * scale0

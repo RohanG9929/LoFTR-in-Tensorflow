@@ -70,7 +70,7 @@ class FineMatching(tf.keras.Model):
 
         # mkpts0_f and mkpts1_f
         mkpts0_f = data['mkpts0_c']
-        scale1 = scale * data['scale1'][data['b_ids']] if 'scale0' in data else scale
+        scale1 = scale * data['scale1'].numpy()[data['b_ids']] if 'scale0' in data else scale
         mkpts1_f = data['mkpts1_c'] + (coords_normed * (W // 2) * scale1)[:len(data['mconf'])]
 
         data.update({
