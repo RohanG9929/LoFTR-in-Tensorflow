@@ -188,6 +188,7 @@ def loadMD(data,idx):
 
 
 reduce_data_size = 10
+
 def read_data(batch_size):
 
     scenes=[]
@@ -205,7 +206,7 @@ def read_data(batch_size):
             finalData['image1'] = tf.concat((finalData['image1'],newData['image1']),axis=0)
             finalData['depth1'] = tf.concat((finalData['depth1'],newData['depth1']),axis=0)
             finalData['scale0'] = tf.concat((finalData['scale0'],newData['scale0']),axis=0)
-            finalData['scale1'] = tf.concat((finalData['scale1'],newData['scale1']),axis=0)    
+            finalData['scale1'] = tf.concat((finalData['scale1'],newData['scale1']),axis=0)  
         if i%(batch_size-1)==0 and i!=0:
             scenes.append(finalData)
             finalData = {}
