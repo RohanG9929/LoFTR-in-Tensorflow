@@ -9,12 +9,12 @@ import os
 import sys
 print(os.getcwd())
 import tensorflow as tf
-from LoFTR_TF import LoFTR
+from src.loftr.LoFTR_TF import LoFTR
 # os.chdir("LoFTR-in-Tensorflow")
-from Training.supervisionTF import compute_supervision_coarse, compute_supervision_fine
-from Training.loftr_lossTF import LoFTRLoss
-from Training.loadMD import read_data
-from plotting_TF import make_matching_figure
+from src.Training.supervisionTF import compute_supervision_coarse, compute_supervision_fine
+from src.Training.loftr_lossTF import LoFTRLoss
+from src.Training.loadMD import read_data
+from src.loftr.utils.plotting_TF import make_matching_figure
 import cv2 as cv
 import matplotlib.cm as cm
 from loguru import logger

@@ -23,7 +23,7 @@ _config = {'loftr': {'backbone_type': 'ResNetFPN',
             'fine': {'d_model': 128, 'd_ffn': 128, 'nhead': 8, 'layer_names': ['self','cross'], 'attention': 'linear'}}}
 
 
-from LoFTR_TF import LoFTR
+from src.loftr.LoFTR_TF import LoFTR
 
 #Creating the matcher 
 matcher = LoFTR(config)

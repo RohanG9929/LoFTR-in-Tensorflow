@@ -2,12 +2,12 @@ import  tensorflow as tf
 from einops.einops import rearrange
 
 # from .backbone import build_backbone
-from Module1 import Module1
-from posEncode_TF import PositionEncodingSine
-from transformer_TF import LocalFeatureTransformer
-from fine_processTF import FinePreprocess
-from coarse_matchingTF import CoarseMatching
-from fine_matchingTF import FineMatching
+from .backbone.Module1 import Module1
+from .utils.posEncode_TF import PositionEncodingSine
+from .loftr_module.transformer_TF import LocalFeatureTransformer
+from .loftr_module.fine_preprocessTF import FinePreprocess
+from .utils.coarse_matchingTF import CoarseMatching
+from .utils.fine_matchingTF import FineMatching
 
 
 class LoFTR(tf.keras.Model):

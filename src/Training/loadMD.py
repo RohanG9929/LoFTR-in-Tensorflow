@@ -6,8 +6,8 @@ import tensorflow as tf
 import os.path as osp
 from tqdm import tqdm
 
-root_dir = './Training/megadepth/'
-megadepthPath = './Training/megadepth/megadepth_test_1500_scene_info/'
+root_dir = './src/Training/megadepth/'
+megadepthPath = './src/Training/megadepth/megadepth_test_1500_scene_info/'
 data = np.load(''+megadepthPath+'0015_0.3_0.5.npz',allow_pickle=True)
 
 img_resize=640#None

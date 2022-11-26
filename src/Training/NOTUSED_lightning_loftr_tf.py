@@ -9,7 +9,7 @@ import os
 import sys
 print(os.getcwd())
 import tensorflow as tf
-from LoFTR_TF import LoFTR
+from src.loftr.LoFTR_TF import LoFTR
 os.chdir("LoFTR-in-Tensorflow")
 from supervisionTF import compute_supervision_coarse, compute_supervision_fine
 from loftr_lossTF import LoFTRLoss

@@ -1,5 +1,5 @@
 import copy
-from linear_attention_TF import LinearAttention, FullAttention
+from .linear_attention_TF import LinearAttention, FullAttention
 import tensorflow as tf
 
 class LoFTREncoderLayer(tf.keras.Model):
