@@ -3,7 +3,7 @@ from einops.einops import rearrange
 
 # from .backbone import build_backbone
 # from .backbone.Module1 import Module1
-from.backbone.resnet_fpn import ResNetFPN_8_2
+from.backbone.resnet_fpn_TF import ResNetFPN_8_2
 from .utils.posEncode_TF import PositionEncodingSine
 from .loftr_module.transformer_TF import LocalFeatureTransformer
 from .loftr_module.fine_preprocessTF import FinePreprocess

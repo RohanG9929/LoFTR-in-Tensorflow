@@ -73,7 +73,7 @@ def train_step(data):
         modelData = matcher(superVisionData, training = True)#Works
         fineSuperData = compute_supervision_fine(modelData,config)#Works
         lossData = modelLoss(fineSuperData)#Works?
-    
+    print(lossData['loss'])
     grads = tape.gradient(lossData['loss'], matcher.trainable_weights)
     optimizer_1.apply_gradients(zip(grads, matcher.trainable_weights))
     print("Weights Updated")
