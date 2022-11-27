@@ -2,7 +2,8 @@ import  tensorflow as tf
 from einops.einops import rearrange
 
 # from .backbone import build_backbone
-from .backbone.Module1 import Module1
+# from .backbone.Module1 import Module1
+from.backbone.resnet_fpn import ResNetFPN_8_2
 from .utils.posEncode_TF import PositionEncodingSine
 from .loftr_module.transformer_TF import LocalFeatureTransformer
 from .loftr_module.fine_preprocessTF import FinePreprocess
@@ -18,6 +19,7 @@ class LoFTR(tf.keras.Model):
 
         # Modules
         # self.backbone = Resnet_FPN(config)
+        self.backbone = ResNetFPN_8_2(config['resnetfpn'])
         self.pos_encoding = PositionEncodingSine(
             config['coarse']['d_model'],
             temp_bug_fix=config['coarse']['temp_bug_fix'])
@@ -50,16 +52,16 @@ class LoFTR(tf.keras.Model):
             #Course and fine feature maps
             #c is 1/8
             #f is 1/2
-            # feats_c, feats_f = self.backbone(tf.concat([data['image0'], data['image1']], axis=0))
-            feats_c, feats_f = Module1(tf.concat([data['image0'], data['image1']], axis=0))
+            feats_c, feats_f = self.backbone(tf.concat([data['image0'], data['image1']], axis=0))
+            # feats_c, feats_f = Module1(tf.concat([data['image0'], data['image1']], axis=0))
     
             #Splitting into features A and features B (feat im1 and feat im2)
             #For course and fine
             (feat_c0, feat_c1) = tf.split(feats_c,num_or_size_splits=(2),axis=0)
             (feat_f0, feat_f1) = tf.split(feats_f,num_or_size_splits=(2),axis=0)
         else:  # handle different input shapes
-            # (feat_c0, feat_f0), (feat_c1, feat_f1) = self.backbone(data['image0']), self.backbone(data['image1'])
-            (feat_c0, feat_f0), (feat_c1, feat_f1) = Module1(data['image0']), Module1(data['image1'])
+            (feat_c0, feat_f0), (feat_c1, feat_f1) = self.backbone(data['image0']), self.backbone(data['image1'])
+            # (feat_c0, feat_f0), (feat_c1, feat_f1) = Module1(data['image0']), Module1(data['image1'])
 
         data.update({
             'hw0_c': feat_c0.shape[2:], 'hw1_c': feat_c1.shape[2:], 
