@@ -49,7 +49,7 @@ def train_step(data):
 
     grads = tape.gradient(lossData['loss'], matcher.trainable_weights, unconnected_gradients='zero')
     optimizer_1.apply_gradients(zip(grads, matcher.trainable_weights))
-    print("Weights Updated")
+    # print("Weights Updated")
 
     return lossData['loss']
 

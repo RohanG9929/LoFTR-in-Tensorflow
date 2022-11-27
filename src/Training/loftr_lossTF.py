@@ -1,7 +1,4 @@
 from loguru import logger
-
-import torch
-import torch.nn as nn
 import tensorflow as tf
 import numpy as np
 
@@ -24,9 +21,9 @@ class LoFTRLoss(tf.keras.Model):
     def compute_coarse_loss(self, conf, conf_gt, weight=None):
         """ Point-wise CE / Focal Loss with 0 / 1 confidence as gt.
         Args:
-            conf (torch.Tensor): (N, HW0, HW1) / (N, HW0+1, HW1+1)
-            conf_gt (torch.Tensor): (N, HW0, HW1)
-            weight (torch.Tensor): (N, HW0, HW1)
+            conf (tf.Tensor): (N, HW0, HW1) / (N, HW0+1, HW1+1)
+            conf_gt (tf.Tensor): (N, HW0, HW1)
+            weight (tf.Tensor): (N, HW0, HW1)
         """
         pos_mask, neg_mask = conf_gt == 1, conf_gt == 0
         c_pos_w, c_neg_w = self.c_pos_w, self.c_neg_w
@@ -53,10 +50,10 @@ class LoFTRLoss(tf.keras.Model):
 
         if self.loss_config['coarse_type'] == 'cross_entropy':
             assert not self.sparse_spvs, 'Sparse Supervision for cross-entropy not implemented!'
-            #conf = torch.clamp(conf, 1e-6, 1-1e-6)
+            #conf = tf.clamp(conf, 1e-6, 1-1e-6)
             conf=tf.clip_by_value(conf, clip_value_min=1e-6, clip_value_max=1-1e-6)
-            #loss_pos = - torch.log(conf[pos_mask])
-            #loss_neg = - torch.log(1 - conf[neg_mask])
+            #loss_pos = - tf.log(conf[pos_mask])
+            #loss_neg = - tf.log(1 - conf[neg_mask])
             loss_pos=-tf.math.log(conf[pos_mask])
             loss_neg=-tf.math.log(1-conf[neg_mask])
             if weight is not None:
@@ -76,7 +73,7 @@ class LoFTRLoss(tf.keras.Model):
                 # calculate losses for negative samples
                 if self.match_type == 'sinkhorn':
                     neg0, neg1 = tf.math_reduce_sum(conf_gt,axis=-1) == 0, tf.math_reduce_sum(conf_gt,axis=1) == 0
-                    #neg_conf = torch.cat([conf[:, :-1, -1][neg0], conf[:, -1, :-1][neg1]], 0)
+                    #neg_conf = tf.cat([conf[:, :-1, -1][neg0], conf[:, -1, :-1][neg1]], 0)
                     neg_conf = tf.concat([conf[:, :-1, -1][neg0], conf[:, -1, :-1][neg1]], axis=0, name='concat')
                     loss_neg = - alpha * tf.math.pow(1 - neg_conf, gamma) * tf.math.log(neg_conf)
                 else:
@@ -121,8 +118,8 @@ class LoFTRLoss(tf.keras.Model):
     def _compute_fine_loss_l2(self, expec_f, expec_f_gt,training):
         """
         Args:
-            expec_f (torch.Tensor): [M, 2] <x, y>
-            expec_f_gt (torch.Tensor): [M, 2] <x, y>
+            expec_f (tf.Tensor): [M, 2] <x, y>
+            expec_f_gt (tf.Tensor): [M, 2] <x, y>
         """
         correct_mask = tf.norm(expec_f_gt, ord=np.inf, axis=1) < self.correct_thr
         if correct_mask.sum() == 0:
@@ -138,8 +135,8 @@ class LoFTRLoss(tf.keras.Model):
     def _compute_fine_loss_l2_std(self, expec_f, expec_f_gt, training):
         """
         Args:
-            expec_f (torch.Tensor): [M, 3] <x, y, std>
-            expec_f_gt (torch.Tensor): [M, 2] <x, y>
+            expec_f (tf.Tensor): [M, 3] <x, y, std>
+            expec_f_gt (tf.Tensor): [M, 2] <x, y>
         """
         # correct_mask tells you which pair to compute fine-loss
         correct_mask = tf.norm(expec_f_gt, ord=np.inf, axis=1) < self.correct_thr
@@ -173,7 +170,7 @@ class LoFTRLoss(tf.keras.Model):
 
         return loss
     
-    #@torch.no_grad()
+    #@tf.no_grad()
     # @tf.stop_gradient()
     def compute_c_weight(self, data):
         """ compute element-wise weights for computing coarse-level loss. """
@@ -222,5 +219,5 @@ class LoFTRLoss(tf.keras.Model):
         #loss_scalars.update({'loss': loss.clone()})#.detach().cpu()})
         loss_scalars.update({"loss": tf.identity(loss)})#.detach().cpu()})
         data.update({"loss": loss, "loss_scalars": loss_scalars})
-        print('Loss Done')
+        # print('Loss Done')
         return data
