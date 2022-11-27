@@ -158,7 +158,7 @@ def spvs_coarse(data, config):
         'spv_w_pt0_i': w_pt0_i,
         'spv_pt1_i': grid_pt1_i
     })
-    print("Course SuperVision Done")
+    # print("Course SuperVision Done")
     return data
 
 
@@ -202,7 +202,7 @@ def spvs_fine(data, config):
 
 
 def compute_supervision_fine(data, config):
-    print("Fine supervision Done")
+    # print("Fine supervision Done")
     return spvs_fine(data, config)
 
     # data_source = data['dataset_name'][0]
