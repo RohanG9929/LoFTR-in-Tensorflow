@@ -5,10 +5,9 @@ import io
 import tensorflow as tf
 import os.path as osp
 from tqdm import tqdm
+import glob
 
-root_dir = './src/Training/megadepth/'
-megadepthPath = './src/Training/megadepth/megadepth_test_1500_scene_info/'
-data = np.load(''+megadepthPath+'0015_0.3_0.5.npz',allow_pickle=True)
+root_dir = './Training/megadepth/' # This should be the phoenix/.../megadepth pathway
 
 img_resize=640#None
 df=None
@@ -126,10 +125,12 @@ def read_megadepth_depth(path, pad_to=None):
 
 def loadMD(data,idx):
         (idx0, idx1), overlap_score, central_matches = data['pair_infos'][idx]
-
+        image0_path_name = data['depth_paths'][idx0].replace('depths', 'imgs').replace('.h5', '.jpg')
+        image1_path_name = data['depth_paths'][idx1].replace('depths', 'imgs').replace('.h5', '.jpg')
+        # phoenix/.../MDv1/scene_no/dense_folder/
         # read grayscale image and mask. (1, h, w) and (h, w)
-        img_name0 = osp.join(root_dir, data['image_paths'][idx0])
-        img_name1 = osp.join(root_dir, data['image_paths'][idx1])
+        img_name0 = osp.join(root_dir, image0_path_name)
+        img_name1 = osp.join(root_dir, image1_path_name)
     
 
 
@@ -187,32 +188,31 @@ def loadMD(data,idx):
 
 
 
-reduce_data_size = 10
+def read_data(batch_size, npz_dir):
+    list_of_scenes_by_covisibility_score = []
+    reduce_data_size = 10
+    for npz_file in glob.glob(npz_dir):
+        data = np.load(npz_file,allow_pickle=True)
+    
+        scene_by_covisibility_score=[]
 
-def read_data(batch_size):
-
-    scenes=[]
-    for i in tqdm(range(int(len(data['pair_infos'])/reduce_data_size)),ascii=True,desc='Loading Scenes'):
-        if i==0 or len(finalData)==0:
-            finalData = loadMD(data,i)
-        else:
-            newData = loadMD(data,i)
-            finalData['image0'] = tf.concat((finalData['image0'],newData['image0']),axis=0)
-            finalData['depth0'] = tf.concat((finalData['depth0'],newData['depth0']),axis=0)
-            finalData['T_0to1'] = tf.concat((finalData['T_0to1'],newData['T_0to1']),axis=0)
-            finalData['T_1to0'] =  tf.concat((finalData['T_1to0'],newData['T_1to0']),axis=0)
-            finalData['K0'] = tf.concat((finalData['K0'],newData['K0']),axis=0)
-            finalData['K1'] =  tf.concat((finalData['K1'],newData['K1']),axis=0)
-            finalData['image1'] = tf.concat((finalData['image1'],newData['image1']),axis=0)
-            finalData['depth1'] = tf.concat((finalData['depth1'],newData['depth1']),axis=0)
-            finalData['scale0'] = tf.concat((finalData['scale0'],newData['scale0']),axis=0)
-            finalData['scale1'] = tf.concat((finalData['scale1'],newData['scale1']),axis=0)  
-        if i%(batch_size-1)==0 and i!=0:
-            scenes.append(finalData)
-            finalData = {}
-    return scenes
-
-
-
-
-
+        for i in tqdm(range(int(len(data['pair_infos'])/reduce_data_size)),ascii=True,desc='Loading Scenes'):
+            if i==0 or len(finalData)==0:
+                finalData = loadMD(data,i)
+            else:
+                newData = loadMD(data,i)
+                finalData['image0'] = tf.concat((finalData['image0'],newData['image0']),axis=0)
+                finalData['depth0'] = tf.concat((finalData['depth0'],newData['depth0']),axis=0)
+                finalData['T_0to1'] = tf.concat((finalData['T_0to1'],newData['T_0to1']),axis=0)
+                finalData['T_1to0'] =  tf.concat((finalData['T_1to0'],newData['T_1to0']),axis=0)
+                finalData['K0'] = tf.concat((finalData['K0'],newData['K0']),axis=0)
+                finalData['K1'] =  tf.concat((finalData['K1'],newData['K1']),axis=0)
+                finalData['image1'] = tf.concat((finalData['image1'],newData['image1']),axis=0)
+                finalData['depth1'] = tf.concat((finalData['depth1'],newData['depth1']),axis=0)
+                finalData['scale0'] = tf.concat((finalData['scale0'],newData['scale0']),axis=0)
+                finalData['scale1'] = tf.concat((finalData['scale1'],newData['scale1']),axis=0)    
+            if i%(batch_size-1)==0 and i!=0:
+                scene_by_covisibility_score.append(finalData)
+                finalData = {}
+        list_of_scenes_by_covisibility_score.append(scene_by_covisibility_score)
+    return list_of_scenes_by_covisibility_score

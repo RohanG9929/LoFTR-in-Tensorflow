@@ -16,23 +16,24 @@ print(os.getcwd())
 # os.chdir("LoFTR-in-Tensorflow")
 
 from src.loftr.LoFTR_TF import LoFTR
-from src.Training.supervisionTF import compute_supervision_coarse, compute_supervision_fine
-from src.Training.loftr_lossTF import LoFTRLoss
-from src.Training.loadMD import read_data
+from src.training.supervisionTF import compute_supervision_coarse, compute_supervision_fine
+from src.training.loftr_lossTF import LoFTRLoss
+from src.training.datasets.loadMD import read_data
 from src.loftr.utils.plotting_TF import make_matching_figure
 from src.configs.getConfig import giveConfig
 tf.config.run_functions_eagerly(True)
 
 config,_config = giveConfig()
-checkpointPath = "./Training"
+checkpointPath = "./weights/cp_smallMegadepth.ckpt"
 
 optimizer_1=tf.keras.optimizers.Adam(learning_rate=0.1)
-optimizer_2 = tf.keras.optimizers.experimental.AdamW()
-train_acc_metric = tf.keras.metrics.SparseCategoricalAccuracy()
-val_acc_metric = tf.keras.metrics.SparseCategoricalAccuracy()
+# optimizer_2 = tf.keras.optimizers.experimental.AdamW()
+# train_acc_metric = tf.keras.metrics.SparseCategoricalAccuracy()
+# val_acc_metric = tf.keras.metrics.SparseCategoricalAccuracy()
 
 matcher=LoFTR(config=_config['loftr']) 
 modelLoss=LoFTRLoss(_config) 
+
 ##############################
 #Init Training
 ##############################
@@ -43,9 +44,9 @@ def train_step(data):
     '''
     with tf.GradientTape() as tape:
         superVisionData = compute_supervision_coarse(data,config)#Ground Truth generation
-        modelData = matcher(superVisionData, training = True)#Works
-        fineSuperData = compute_supervision_fine(modelData,config)#Works
-        lossData = modelLoss(fineSuperData)#Works?
+        modelData = matcher(superVisionData, training = True)
+        fineSuperData = compute_supervision_fine(modelData,config)
+        lossData = modelLoss(fineSuperData)
 
     grads = tape.gradient(lossData['loss'], matcher.trainable_weights, unconnected_gradients='zero')
     optimizer_1.apply_gradients(zip(grads, matcher.trainable_weights))
@@ -54,8 +55,9 @@ def train_step(data):
     return lossData['loss']
 
 
-epochs = 7
-scenes = read_data(batch_size=4)#read_data('./Training/Scenes/')#Works
+epochs = 2
+scenes = read_data(batch_size=4)
+logger.info(f"Data Loaded!")
 loss_all=[]
 logger.info(f"Trainer initialized!")
 
@@ -72,6 +74,8 @@ for epoch in range(epochs):
 
 ######################################################################
 logger.info(f"Training Done!")
+matcher.save_weights(checkpointPath)
+# matcher.save_weights("./weights/cp_smallMegadepth.ckpt")
 print("Loss progression is:")
 print(loss_all)
 print('')
@@ -103,7 +107,7 @@ text = [
     'LoFTR',
     'Matches: {}'.format(len(mkpts0)),
 ]
-make_matching_figure(img0_raw, img1_raw, mkpts0, mkpts1, color, text=text, path='./src/Training/figs/matches.jpg')
+make_matching_figure(img0_raw, img1_raw, mkpts0, mkpts1, color, text=text, path='./src/training/figs/matches.jpg')
 
 print("DONE")
 # Calling `save('my_model')` creates a SavedModel folder `my_model`.
