@@ -78,12 +78,20 @@ class ResNetFPN_8_2(tf.keras.Model):
         # 3. FPN upsample
         self.layer3_outconv = conv1x1(block_dims[2], block_dims[2])
         self.layer2_outconv = conv1x1(block_dims[1], block_dims[2])
-        self.layer2_outconv2= tf.keras.Sequential([conv3x3(block_dims[2], block_dims[2]),tf.keras.layers.BatchNormalization(axis=-1),
-                                    tf.keras.layers.LeakyReLU(),conv3x3(block_dims[2], block_dims[1])])
+        self.layer2_outconv2= tf.keras.Sequential(
+                            [conv3x3(block_dims[2], block_dims[2]),
+                            tf.keras.layers.BatchNormalization(axis=-1),
+                            tf.keras.layers.LeakyReLU(),
+                            conv3x3(block_dims[2], 
+                            block_dims[1])])
         
         self.layer1_outconv = conv1x1(block_dims[0], block_dims[1])
-        self.layer1_outconv2= tf.keras.Sequential([conv3x3(block_dims[1], block_dims[1]),tf.keras.layers.BatchNormalization(axis=-1),
-                        tf.keras.layers.LeakyReLU(),conv3x3(block_dims[1], block_dims[0])])
+        self.layer1_outconv2= tf.keras.Sequential(
+                            [conv3x3(block_dims[1], block_dims[1]),
+                            tf.keras.layers.BatchNormalization(axis=-1),
+                            tf.keras.layers.LeakyReLU(),
+                            conv3x3(block_dims[1], 
+                            block_dims[0])])
 
         for m in self.layers:  
             if isinstance(m, tf.keras.layers.Conv2D):
@@ -107,16 +115,25 @@ class ResNetFPN_8_2(tf.keras.Model):
         self.in_planes = dim
         return tf.keras.Sequential([*layers])
 
-    def call(self, inputs):
-        inputs = rearrange(inputs, 'n c h w -> n h w c')
+    def call(self, x):
+        x = rearrange(x, 'n c h w -> n h w c')
         # ResNet Backbone
-        x0 = self.relu(self.bn1(self.conv1(inputs)))
+        x0 = self.relu(self.bn1(self.conv1(x)))
         x0=tf.pad(x0,tf.constant([[0,0],[2,1],[2,1],[0,0]]))
         x1 = self.layer1(x0)  # 1/2
         x2 = self.layer2(x1)  # 1/4
         x3 = self.layer3(x2)  # 1/8
 
         # FPN
+        # x3_out = self.layer3_outconv(x3)
+        # x2_out = self.layer2_outconv(x2)
+        # x3_out_2x = tf.keras.layers.UpSampling2D(size=2, interpolation = 'bilinear', data_format='channels_last')(x3_out)
+        # padding=tf.constant([[0,0],[2,2],[2,2],[0,0]])  
+        # x2_out = self.layer2_outconv2(tf.pad(x2_out, padding, "CONSTANT")+ tf.pad(x3_out_2x, padding, "CONSTANT"))
+        # x1_out = self.layer1_outconv(x1)
+        # x2_out_2x = tf.keras.layers.UpSampling2D(size=2, interpolation = 'bilinear', data_format='channels_last')(x2_out)
+        # x1_out = self.layer1_outconv2(tf.pad(x1_out, padding, "CONSTANT")+ tf.pad(x2_out_2x, padding, "CONSTANT"))
+
         x3_out = self.layer3_outconv(x3)
         x3_out_2x=tf.image.resize(x3_out,[x3_out.shape[1]*2,x3_out.shape[2]*2]) # should be [1, 256, 120, 160]
         x2_out = self.layer2_outconv(x2) # should be [1, 256, 120, 160]

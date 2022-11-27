@@ -61,7 +61,7 @@ val_acc_metric = tf.keras.metrics.SparseCategoricalAccuracy()
 matcher=LoFTR(config=_config['loftr']) 
 modelLoss=LoFTRLoss(_config) 
 ##############################
-
+#Init Training
 ##############################
 @tf.function
 def train_step(data):
@@ -80,11 +80,15 @@ def train_step(data):
 
     return lossData['loss']
 
-epochs = 4
+
+epochs = 2
 scenes = read_data(batch_size=4)#read_data('./Training/Scenes/')#Works
 loss_all=[]
-
 logger.info(f"Trainer initialized!")
+
+##############################
+#Begin Training
+##############################
 for epoch in range(epochs):
     loss=0
     for batch in ((scenes)):
@@ -94,7 +98,7 @@ for epoch in range(epochs):
 
 
 ######################################################################
-logger.info(f"Trainer Done!")
+logger.info(f"Training Done!")
 print(loss_all)
 matcher.summary()
 tf.config.run_functions_eagerly(False)
