@@ -7,7 +7,7 @@ import os.path as osp
 from tqdm import tqdm
 import glob
 
-root_dir = './Training/megadepth/' # This should be the phoenix/.../megadepth pathway
+
 
 img_resize=640#None
 df=None
@@ -77,16 +77,16 @@ def pad_bottom_right(inp, pad_size, ret_mask=False):
     return padded, mask
 
 
-def read_megadepth_gray(path, resize=None, df=None, padding=False, augment_fn=None):
+def read_megadepth_gray(path, resize=None, df=None, padding=False, augment_fn=None,intrinsics = None):
     """
     Args:
         resize (int, optional): the longer edge of resized images. None for no resize.
         padding (bool): If set to 'True', zero-pad resized images to squared size.
         augment_fn (callable, optional): augments images with pre-defined visual effects
     Returns:
-        image (torch.tensor): (1, h, w)
-        mask (torch.tensor): (h, w)
-        scale (torch.tensor): [w/w_new, h/h_new]        
+        image (tf.tensor): (1, h, w)
+        mask (tf.tensor): (h, w)
+        scale (tf.tensor): [w/w_new, h/h_new]        
     """
     # read image
     image = cv2.imread(path,0)
@@ -107,6 +107,7 @@ def read_megadepth_gray(path, resize=None, df=None, padding=False, augment_fn=No
     else:
         mask = None
 
+    image = cv2.undistort(image,intrinsics)
     image = tf.convert_to_tensor(image,tf.float32)[None] / 255  # (h, w) -> (1, h, w) and normalized
     
 
@@ -123,7 +124,7 @@ def read_megadepth_depth(path, pad_to=None):
     depth = tf.convert_to_tensor(depth,tf.float32)  # (h, w)
     return depth
 
-def loadMD(data,idx):
+def loadMD(data,idx,root_dir):
         (idx0, idx1), overlap_score, central_matches = data['pair_infos'][idx]
         image0_path_name = data['depth_paths'][idx0].replace('depths', 'imgs').replace('.h5', '.jpg')
         image1_path_name = data['depth_paths'][idx1].replace('depths', 'imgs').replace('.h5', '.jpg')
@@ -132,12 +133,14 @@ def loadMD(data,idx):
         img_name0 = osp.join(root_dir, image0_path_name)
         img_name1 = osp.join(root_dir, image1_path_name)
     
-
+        # read intrinsics of original size
+        K_0 = tf.convert_to_tensor(data['intrinsics'][idx0].copy(), dtype=tf.float32)#.reshape(3, 3)
+        K_1 = tf.convert_to_tensor(data['intrinsics'][idx1].copy(), dtype=tf.float32)#.reshape(3, 3)
 
         # TODO: Support augmentation & handle seeds for each worker correctly.
-        image0, mask0, scale0 = read_megadepth_gray(img_name0, img_resize, df, img_padding, None)
+        image0, mask0, scale0 = read_megadepth_gray(img_name0, img_resize, df, img_padding, None, intrinsics=K_0)
             # np.random.choice([augment_fn, None], p=[0.5, 0.5]))
-        image1, mask1, scale1 = read_megadepth_gray(img_name1, img_resize, df, img_padding, None)
+        image1, mask1, scale1 = read_megadepth_gray(img_name1, img_resize, df, img_padding, None, intrinsics=K_1)
             # np.random.choice([augment_fn, None], p=[0.5, 0.5]))
 
         # read depth. shape: (h, w)
@@ -148,9 +151,6 @@ def loadMD(data,idx):
             osp.join(root_dir, data['depth_paths'][idx1]), pad_to=depth_max_size)
 
 
-        # read intrinsics of original size
-        K_0 = tf.convert_to_tensor(data['intrinsics'][idx0].copy(), dtype=tf.float32)#.reshape(3, 3)
-        K_1 = tf.convert_to_tensor(data['intrinsics'][idx1].copy(), dtype=tf.float32)#.reshape(3, 3)
 
         # read and compute relative poses
         T0 = data['poses'][idx0]
@@ -175,32 +175,24 @@ def loadMD(data,idx):
             # 'pair_names': (data['image_paths'][idx0], data['image_paths'][idx1]),
         }
 
-        # # for LoFTR training
-        # if mask0 is not None:  # img_padding is True
-        #     if coarse_scale:
-        #         [ts_mask_0, ts_mask_1] = F.interpolate(torch.stack([mask0, mask1], dim=0)[None].float(),
-        #                                                scale_factor=coarse_scale,
-        #                                                mode='nearest',
-        #                                                recompute_scale_factor=False)[0].bool()
-        #     data.update({'mask0': ts_mask_0, 'mask1': ts_mask_1})
-
         return outdata
 
 
 
-def read_data(batch_size, npz_dir):
-    list_of_scenes_by_covisibility_score = []
-    reduce_data_size = 10
-    for npz_file in glob.glob(npz_dir):
-        data = np.load(npz_file,allow_pickle=True)
-    
-        scene_by_covisibility_score=[]
+def read_fullMD_data(batch_size, npz_dir, root_dir):
+    list_of_batches = []
 
-        for i in tqdm(range(int(len(data['pair_infos'])/reduce_data_size)),ascii=True,desc='Loading Scenes'):
+    for npz_file in glob.glob(npz_dir):
+        scene_data = np.load(npz_file,allow_pickle=True)
+    
+        # scene_by_covisibility_score=[]
+        sample_inds = np.random.randint(0,len(scene_data['pair_infos'])+1, 100)
+
+        for i in tqdm(range(sample_inds.shape[0]),desc='Loading Scenes'):
             if i==0 or len(finalData)==0:
-                finalData = loadMD(data,i)
+                finalData = loadMD(scene_data,sample_inds[i],root_dir)
             else:
-                newData = loadMD(data,i)
+                newData = loadMD(scene_data,sample_inds[i],root_dir)
                 finalData['image0'] = tf.concat((finalData['image0'],newData['image0']),axis=0)
                 finalData['depth0'] = tf.concat((finalData['depth0'],newData['depth0']),axis=0)
                 finalData['T_0to1'] = tf.concat((finalData['T_0to1'],newData['T_0to1']),axis=0)
@@ -212,7 +204,7 @@ def read_data(batch_size, npz_dir):
                 finalData['scale0'] = tf.concat((finalData['scale0'],newData['scale0']),axis=0)
                 finalData['scale1'] = tf.concat((finalData['scale1'],newData['scale1']),axis=0)    
             if i%(batch_size-1)==0 and i!=0:
-                scene_by_covisibility_score.append(finalData)
+                list_of_batches.append(finalData)
                 finalData = {}
-        list_of_scenes_by_covisibility_score.append(scene_by_covisibility_score)
-    return list_of_scenes_by_covisibility_score
+        # list_of_scenes_by_covisibility_score.append(scene_by_covisibility_score)
+    return list_of_batches
