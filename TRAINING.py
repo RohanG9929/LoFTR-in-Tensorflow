@@ -34,8 +34,6 @@ optimizer_1=tf.keras.optimizers.Adam(learning_rate=0.001)
 matcher=LoFTR(config=_config['loftr']) 
 modelLoss=LoFTRLoss(_config) 
 
-# matcher.compile(optimizer=optimizer_1,
-#                 loss=modelLoss)
 ##############################
 #Init Training
 ##############################
@@ -58,7 +56,7 @@ def train_step(data):
 
 root_dir = './src/training/datasets/megadepth/'
 epochs = 10
-scenes = read_fullMD_data(batch_size=4,npz_dir= os.path.join(root_dir,  'megadepth_indices/scene_info_0.1_0.7'),root_dir=root_dir)
+scenes = read_fullMD_data(batch_size=4,npz_dir= os.path.join(root_dir,'megadepth_indices/scene_info_0.1_0.7'),root_dir=root_dir)
 logger.info(f"Data Loaded!")
 loss_all=[]
 logger.info(f"Trainer initialized!")
