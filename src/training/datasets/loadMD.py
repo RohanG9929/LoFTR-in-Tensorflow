@@ -184,7 +184,7 @@ reduce_data_size = 1
 
 def read_data(batch_size):
     scenes=[]
-    for data in tqdm(range(data),desc='Loading Scenes'):
+    for data in tqdm(data,desc='Loading Scenes'):
         for i in range(int(len(data['pair_infos'])/reduce_data_size)):
             if i==0 or len(finalData)==0:
                 finalData = loadMD(data,i)
