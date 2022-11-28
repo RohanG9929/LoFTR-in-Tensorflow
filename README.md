@@ -1,6 +1,6 @@
 # LoFTR-in-Tensorflow
 
-In an attempt to make the LoFTR [[1]](#1) algorithm more accesable we have reimplmeneted it in Tensorflow.
+In an attempt to make the LoFTR [[1]](#1) algorithm more accessible, we have reimplmeneted it in Tensorflow.
 
 ## Comparison
 
