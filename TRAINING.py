@@ -26,7 +26,7 @@ tf.config.run_functions_eagerly(True)
 config,_config = giveConfig()
 checkpointPath = "./weights/cp_smallMegadepth.ckpt"
 
-optimizer_1=tf.keras.optimizers.Adam(learning_rate=0.1)
+optimizer_1=tf.keras.optimizers.Adam(learning_rate=0.001)
 # optimizer_2 = tf.keras.optimizers.experimental.AdamW()
 # train_acc_metric = tf.keras.metrics.SparseCategoricalAccuracy()
 # val_acc_metric = tf.keras.metrics.SparseCategoricalAccuracy()
