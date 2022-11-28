@@ -17,8 +17,8 @@ matcher=LoFTR(config=_config['loftr'])
 matcher.load_weights("./weights/other/cp_smallMegadepth.ckpt")
 
 #loading in the images for the current batch
-img0_pth = "./src/training/datasets/unused/Scenes/scene1/Images/603.jpg"
-img1_pth = "./src/training/datasets/unused/Scenes/scene1/Images/604.jpg"
+img0_pth = "./src/training/datasets/unused/Scenes/scene3/Images/628.jpg"
+img1_pth = "./src/training/datasets/unused/Scenes/scene3/Images/630.jpg"
 img0_raw = cv.imread(img0_pth, cv.IMREAD_GRAYSCALE)
 img1_raw = cv.imread(img1_pth, cv.IMREAD_GRAYSCALE)
 img0_raw = cv.resize(img0_raw, (640, 480))

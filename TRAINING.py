@@ -17,7 +17,7 @@ from src.configs.getConfig import giveConfig
 tf.config.run_functions_eagerly(True)
 
 config,_config = giveConfig()
-checkpointPath = "./weights/fullMD/cp_smallMegadepth.ckpt"
+checkpointPath = "./weights/megadepth/cp_Megadepth.ckpt"
 
 optimizer_1=tf.keras.optimizers.Adam(learning_rate=0.001)
 matcher=LoFTR(config=_config['loftr']) 
