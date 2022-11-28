@@ -14,11 +14,11 @@ config,_config = giveConfig()
 
 #Creating the matcher 
 matcher=LoFTR(config=_config['loftr']) 
-matcher.load_weights("./weights/cp_smallMegadepth.ckpt")
-#loading in the images for the current batch
+matcher.load_weights("./weights/other/cp_smallMegadepth.ckpt")
 
-img0_pth = "./src/training/datasets/unused/Scenes/scene1/Images/603.jpg"#"./other/scene0738_00_frame-000885.jpg"
-img1_pth = "./src/training/datasets/unused/Scenes/scene1/Images/604.jpg"#"./other/scene0738_00_frame-001065.jpg"
+#loading in the images for the current batch
+img0_pth = "./src/training/datasets/unused/Scenes/scene1/Images/603.jpg"
+img1_pth = "./src/training/datasets/unused/Scenes/scene1/Images/604.jpg"
 img0_raw = cv.imread(img0_pth, cv.IMREAD_GRAYSCALE)
 img1_raw = cv.imread(img1_pth, cv.IMREAD_GRAYSCALE)
 img0_raw = cv.resize(img0_raw, (640, 480))
