@@ -57,7 +57,7 @@ def train_step(data):
     return lossData['loss']
 
 
-epochs = 2
+epochs = 5
 scenes = read_data(batch_size=4)
 logger.info(f"Data Loaded!")
 loss_all=[]
@@ -77,7 +77,7 @@ for epoch in range(epochs):
 ######################################################################mess
 logger.info(f"Training Done!")
 matcher.save_weights(checkpointPath)
-# matcher.save_weights("./weights/cp_smallMegadepth.ckpt")
+
 print("Loss progression is:")
 print(loss_all)
 print('')
@@ -112,11 +112,6 @@ text = [
 make_matching_figure(img0_raw, img1_raw, mkpts0, mkpts1, color, text=text, path='./src/training/figs/matches.jpg')
 
 print("DONE")
-# Calling `save('my_model')` creates a SavedModel folder `my_model`.
-# matcher.save("my_model")
-
-# It can be used to reconstruct the model identically.
-# reconstructed_model = tf.keras.models.load_model("my_model")
 
 
 
