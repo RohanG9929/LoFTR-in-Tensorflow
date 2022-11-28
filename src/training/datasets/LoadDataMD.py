@@ -107,9 +107,8 @@ def read_megadepth_gray(path, resize=None, df=None, padding=False, augment_fn=No
     else:
         mask = None
 
-    image = cv2.undistort(image,intrinsics)
+    # image = cv2.undistort(image,intrinsics)
     image = tf.convert_to_tensor(image,tf.float32)[None] / 255  # (h, w) -> (1, h, w) and normalized
-    
 
     return image, mask, scale
 
