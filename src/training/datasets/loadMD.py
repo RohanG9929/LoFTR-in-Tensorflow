@@ -6,9 +6,11 @@ import tensorflow as tf
 import os.path as osp
 from tqdm import tqdm
 
-root_dir = './src/training/datasets/megadepth/'
-megadepthPath = './src/training/datasets/megadepth/megadepth_test_1500_scene_info/'
-data = np.load(''+megadepthPath+'0015_0.3_0.5.npz',allow_pickle=True)
+root_dir = './src/training/datasets/megadepth_test/'
+megadepthPath = './src/training/datasets/megadepth_test/megadepth_test_1500_scene_info/'
+data = [np.load(''+megadepthPath+'0015_0.3_0.5.npz',allow_pickle=True),
+        np.load(''+megadepthPath+'0022_0.3_0.5.npz',allow_pickle=True),
+        np.load(''+megadepthPath+'0022_0.5_0.7.npz',allow_pickle=True)]
 
 img_resize=640#None
 df=None
@@ -174,15 +176,6 @@ def loadMD(data,idx):
             # 'pair_names': (data['image_paths'][idx0], data['image_paths'][idx1]),
         }
 
-        # # for LoFTR training
-        # if mask0 is not None:  # img_padding is True
-        #     if coarse_scale:
-        #         [ts_mask_0, ts_mask_1] = F.interpolate(torch.stack([mask0, mask1], dim=0)[None].float(),
-        #                                                scale_factor=coarse_scale,
-        #                                                mode='nearest',
-        #                                                recompute_scale_factor=False)[0].bool()
-        #     data.update({'mask0': ts_mask_0, 'mask1': ts_mask_1})
-
         return outdata
 
 
@@ -190,27 +183,27 @@ def loadMD(data,idx):
 reduce_data_size = 1
 
 def read_data(batch_size):
-
     scenes=[]
-    for i in tqdm(range(int(len(data['pair_infos'])/reduce_data_size)),desc='Loading Scenes'):
-        if i==0 or len(finalData)==0:
-            finalData = loadMD(data,i)
-        else:
-            newData = loadMD(data,i)
-            finalData['image0'] = tf.concat((finalData['image0'],newData['image0']),axis=0)
-            finalData['depth0'] = tf.concat((finalData['depth0'],newData['depth0']),axis=0)
-            finalData['T_0to1'] = tf.concat((finalData['T_0to1'],newData['T_0to1']),axis=0)
-            finalData['T_1to0'] =  tf.concat((finalData['T_1to0'],newData['T_1to0']),axis=0)
-            finalData['K0'] = tf.concat((finalData['K0'],newData['K0']),axis=0)
-            finalData['K1'] =  tf.concat((finalData['K1'],newData['K1']),axis=0)
-            finalData['image1'] = tf.concat((finalData['image1'],newData['image1']),axis=0)
-            finalData['depth1'] = tf.concat((finalData['depth1'],newData['depth1']),axis=0)
-            finalData['scale0'] = tf.concat((finalData['scale0'],newData['scale0']),axis=0)
-            finalData['scale1'] = tf.concat((finalData['scale1'],newData['scale1']),axis=0)  
-        if i%(batch_size-1)==0 and i!=0:
-            scenes.append(finalData)
-            finalData = {}
-    return scenes
+    for data in tqdm(range(data),desc='Loading Scenes'):
+        for i in range(int(len(data['pair_infos'])/reduce_data_size)):
+            if i==0 or len(finalData)==0:
+                finalData = loadMD(data,i)
+            else:
+                newData = loadMD(data,i)
+                finalData['image0'] = tf.concat((finalData['image0'],newData['image0']),axis=0)
+                finalData['depth0'] = tf.concat((finalData['depth0'],newData['depth0']),axis=0)
+                finalData['T_0to1'] = tf.concat((finalData['T_0to1'],newData['T_0to1']),axis=0)
+                finalData['T_1to0'] =  tf.concat((finalData['T_1to0'],newData['T_1to0']),axis=0)
+                finalData['K0'] = tf.concat((finalData['K0'],newData['K0']),axis=0)
+                finalData['K1'] =  tf.concat((finalData['K1'],newData['K1']),axis=0)
+                finalData['image1'] = tf.concat((finalData['image1'],newData['image1']),axis=0)
+                finalData['depth1'] = tf.concat((finalData['depth1'],newData['depth1']),axis=0)
+                finalData['scale0'] = tf.concat((finalData['scale0'],newData['scale0']),axis=0)
+                finalData['scale1'] = tf.concat((finalData['scale1'],newData['scale1']),axis=0)  
+            if i%(batch_size-1)==0 and i!=0:
+                scenes.append(finalData)
+                finalData = {}
+        return scenes
 
 
 
