@@ -18,13 +18,13 @@ print(os.getcwd())
 from src.loftr.LoFTR_TF import LoFTR
 from src.training.supervisionTF import compute_supervision_coarse, compute_supervision_fine
 from src.training.loftr_lossTF import LoFTRLoss
-from src.training.datasets.loadMD import read_data
+from src.training.datasets.LoadDataMD import read_fullMD_data
 from src.loftr.utils.plotting_TF import make_matching_figure
 from src.configs.getConfig import giveConfig
 tf.config.run_functions_eagerly(True)
 
 config,_config = giveConfig()
-checkpointPath = "./weights/cp_smallMegadepth.ckpt"
+checkpointPath = "./weights/fullMD/cp_smallMegadepth.ckpt"
 
 optimizer_1=tf.keras.optimizers.Adam(learning_rate=0.001)
 # optimizer_2 = tf.keras.optimizers.experimental.AdamW()
@@ -56,9 +56,9 @@ def train_step(data):
 
     return lossData['loss']
 
-
-epochs = 5
-scenes = read_data(batch_size=4)
+root_dir = './src/training/datasets/megadepth/'
+epochs = 10
+scenes = read_fullMD_data(batch_size=4,npz_dir= os.path.join(root_dir,  'megadepth_indices/scene_info_0.1_0.7'),root_dir=root_dir)
 logger.info(f"Data Loaded!")
 loss_all=[]
 logger.info(f"Trainer initialized!")
