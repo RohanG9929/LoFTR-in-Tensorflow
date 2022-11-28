@@ -34,6 +34,8 @@ optimizer_1=tf.keras.optimizers.Adam(learning_rate=0.1)
 matcher=LoFTR(config=_config['loftr']) 
 modelLoss=LoFTRLoss(_config) 
 
+# matcher.compile(optimizer=optimizer_1,
+#                 loss=modelLoss)
 ##############################
 #Init Training
 ##############################
@@ -72,7 +74,7 @@ for epoch in range(epochs):
     loss_all.append(float(tf.math.reduce_sum(loss)/(len(scenes))))
 
 
-######################################################################
+######################################################################mess
 logger.info(f"Training Done!")
 matcher.save_weights(checkpointPath)
 # matcher.save_weights("./weights/cp_smallMegadepth.ckpt")

@@ -1,40 +1,24 @@
 import cv2 as cv
 import tensorflow as tf
 import h5py
-print(tf.__version__)
-print(tf.keras.__version__)
-config = {'backbone_type': 'ResNetFPN', 
-            'resolution': (8, 2), 
-            'fine_window_size': 5, 
-            'fine_concat_coarse_feat': True, 
-            'resnetfpn': {'initial_dim': 128, 'block_dims': [128,196,256]}, 
-            'coarse': {'d_model': 256, 'd_ffn': 256, 'nhead': 8, 'layer_names': ['self', 'cross', 'self', 'cross', 'self', 'cross', 'self', 'cross'], 'attention': 'linear', 'temp_bug_fix': True}, 
-            'match_coarse': {'thr': 0.2, 'border_rm': 2, 'match_type': 'dual_softmax', 'dsmax_temperature': 0.1, 'skh_iters': 3, 'skh_init_bin_score': 1.0, 'skh_prefilter': True, 'train_coarse_percent': 0.4, 'train_pad_num_gt_min': 200}, 
-            'fine': {'d_model': 128, 'd_ffn': 128, 'nhead': 8, 'layer_names': ['self','cross'], 'attention': 'linear'}}
-
-
-_config = {'loftr': {'backbone_type': 'ResNetFPN', 
-            'resolution': (8, 2), 
-            'fine_window_size': 5, 
-            'fine_concat_coarse_feat': True, 
-            'resnetfpn': {'initial_dim': 128, 'block_dims': [128,196,256]}, 
-            'coarse': {'d_model': 256, 'd_ffn': 256, 'nhead': 8, 'layer_names': ['self', 'cross', 'self', 'cross', 'self', 'cross', 'self', 'cross'], 'attention': 'linear', 'temp_bug_fix': True}, 
-            'match_coarse': {'thr': 0.2, 'border_rm': 2, 'match_type': 'dual_softmax', 'dsmax_temperature': 0.1, 'skh_iters': 3, 'skh_init_bin_score': 1.0, 'skh_prefilter': True, 'train_coarse_percent': 0.4, 'train_pad_num_gt_min': 200}, 
-            'fine': {'d_model': 128, 'd_ffn': 128, 'nhead': 8, 'layer_names': ['self','cross'], 'attention': 'linear'}}}
-
-
+import matplotlib.cm as cm
+from src.loftr.utils.plotting_TF import make_matching_figure
+from src.configs.getConfig import giveConfig
 from src.loftr.LoFTR_TF import LoFTR
 
+print(tf.__version__)
+print(tf.keras.__version__)
+config,_config = giveConfig()
+
+
+
 #Creating the matcher 
-matcher = LoFTR(config)
-import os
-
-print(os.getcwd())
-
+matcher=LoFTR(config=_config['loftr']) 
+matcher.load_weights("./weights/cp_smallMegadepth.ckpt")
 
 #loading in the images for the current batch
-img0_pth = "./src/Training/Scenes/scene1/Images/603.jpg"#"./other/scene0738_00_frame-000885.jpg"
-img1_pth = "./src/Training/Scenes/scene1/Images/604.jpg"#"./other/scene0738_00_frame-001065.jpg"
+img0_pth = "./src/training/datasets/unused/Scenes/scene1/Images/603.jpg"#"./other/scene0738_00_frame-000885.jpg"
+img1_pth = "./src/training/datasets/unused/Scenes/scene1/Images/604.jpg"#"./other/scene0738_00_frame-001065.jpg"
 img0_raw = cv.imread(img0_pth, cv.IMREAD_GRAYSCALE)
 img1_raw = cv.imread(img1_pth, cv.IMREAD_GRAYSCALE)
 img0_raw = cv.resize(img0_raw, (640, 480))
@@ -48,6 +32,19 @@ data = {'image0': img0, 'image1': img1}
 #Calling the matcher on the current batch
 updata = matcher(data)
 
-print(updata)
+#Extracting matches
+mkpts0 = updata['mkpts0_f'].numpy()
+mkpts1 = updata['mkpts1_f'].numpy()
+mconf = updata['mconf'].numpy()
+
+color = cm.jet(mconf)
+text = [
+    'LoFTR',
+    'Matches: {}'.format(len(mkpts0)),
+]
+make_matching_figure(img0_raw, img1_raw, mkpts0, mkpts1, color, text=text, path='./outputs/figs/matches.jpg')
+
+print("DONE")
+
 
 

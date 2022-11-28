@@ -187,7 +187,7 @@ def loadMD(data,idx):
 
 
 
-reduce_data_size = 10
+reduce_data_size = 1
 
 def read_data(batch_size):
 
