@@ -181,13 +181,13 @@ def loadMD(data,idx,root_dir):
 def read_fullMD_data(batch_size, npz_dir, root_dir):
     list_of_batches = []
 
-    for npz_file in glob.glob(npz_dir):
+    for npz_file in tqdm(glob.glob(npz_dir),desc='Loading Scenes'):
         scene_data = np.load(npz_file,allow_pickle=True)
     
         # scene_by_covisibility_score=[]
-        sample_inds = np.random.randint(0,len(scene_data['pair_infos'])+1, 100)
+        sample_inds = np.random.randint(0,len(scene_data['pair_infos']), 100)
 
-        for i in tqdm(range(sample_inds.shape[0]),desc='Loading Scenes'):
+        for i in range(sample_inds.shape[0]):
             if i==0 or len(finalData)==0:
                 finalData = loadMD(scene_data,sample_inds[i],root_dir)
             else:
