@@ -184,10 +184,9 @@ def read_fullMD_data(batch_size, npz_dir, root_dir):
         while (line := file.readline().rstrip()):
             stringlist_ofscenes.append(line)
 
-
     list_of_batches = []
     for sceneName in tqdm(stringlist_ofscenes,desc='Loading Scenes'):
-        scene_data = np.load(npz_dir+sceneName,allow_pickle=True)
+        scene_data = np.load(npz_dir+sceneName+'.npz',allow_pickle=True)
 
     # for npz_file in tqdm(glob.glob(npz_dir),desc='Loading Scenes'):
     #     scene_data = np.load(npz_file,allow_pickle=True)
