@@ -8,7 +8,9 @@ from tqdm import tqdm
 
 root_dir = './src/training/datasets/megadepth_test/'
 megadepthPath = './src/training/datasets/megadepth_test/megadepth_test_1500_scene_info/'
-allNPZ = [np.load(''+megadepthPath+'0015_0.3_0.5.npz',allow_pickle=True),
+allNPZ = [np.load(''+megadepthPath+'0015_0.1_0.3.npz',allow_pickle=True),
+        np.load(''+megadepthPath+'0015_0.3_0.5.npz',allow_pickle=True),
+        np.load(''+megadepthPath+'0022_0.1_0.3.npz',allow_pickle=True),
         np.load(''+megadepthPath+'0022_0.3_0.5.npz',allow_pickle=True),
         np.load(''+megadepthPath+'0022_0.5_0.7.npz',allow_pickle=True)]
 
@@ -87,9 +89,9 @@ def read_megadepth_gray(path, resize=None, df=None, padding=False, augment_fn=No
         padding (bool): If set to 'True', zero-pad resized images to squared size.
         augment_fn (callable, optional): augments images with pre-defined visual effects
     Returns:
-        image (torch.tensor): (1, h, w)
-        mask (torch.tensor): (h, w)
-        scale (torch.tensor): [w/w_new, h/h_new]        
+        image (tf.tensor): (1, h, w)
+        mask (tf.tensor): (h, w)
+        scale (tf.tensor): [w/w_new, h/h_new]        
     """
     # read image
     image = cv2.imread(path,0)
