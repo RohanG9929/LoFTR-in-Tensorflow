@@ -125,12 +125,22 @@ def read_megadepth_depth(path, pad_to=None):
 
 def loadMD(data,idx,root_dir):
         (idx0, idx1), overlap_score, central_matches = data['pair_infos'][idx]
-        image0_path_name = data['depth_paths'][idx0].replace('depths', 'imgs').replace('.h5', '.jpg')
-        image1_path_name = data['depth_paths'][idx1].replace('depths', 'imgs').replace('.h5', '.jpg')
-        # phoenix/.../MDv1/scene_no/dense_folder/
-        # read grayscale image and mask. (1, h, w) and (h, w)
-        img_name0 = osp.join(root_dir, image0_path_name)
-        img_name1 = osp.join(root_dir, image1_path_name)
+        
+        # image0_path_name = data['depth_paths'][idx0].replace('depths', 'imgs').replace('.h5', '.jpg')
+        # image1_path_name = data['depth_paths'][idx1].replace('depths', 'imgs').replace('.h5', '.jpg')
+
+        
+        # # phoenix/.../MDv1/scene_no/dense_folder/
+        # # read grayscale image and mask. (1, h, w) and (h, w)
+        # img_name0 = osp.join(root_dir, image0_path_name)
+        # img_name1 = osp.join(root_dir, image1_path_name)
+
+        img_name0 = osp.join(root_dir, data['image_paths'][idx0])
+        img_name1 = osp.join(root_dir, data['image_paths'][idx1])
+
+        print(img_name0)
+        print(img_name1)
+        print('printed')
     
         # read intrinsics of original size
         K_0 = tf.convert_to_tensor(data['intrinsics'][idx0].copy(), dtype=tf.float32)#.reshape(3, 3)
@@ -192,13 +202,13 @@ def read_fullMD_data(batch_size, npz_dir, root_dir):
     #     scene_data = np.load(npz_file,allow_pickle=True)
     
         # scene_by_covisibility_score=[]
-        sample_inds = np.random.randint(0,len(scene_data['pair_infos']), 100)
+        # sample_inds = np.random.randint(0,len(scene_data['pair_infos']), 100)
 
-        for i in range(sample_inds.shape[0]):
+        for i in range(100):
             if i==0 or len(finalData)==0:
-                finalData = loadMD(scene_data,sample_inds[i],root_dir)
+                finalData = loadMD(scene_data,i,root_dir)
             else:
-                newData = loadMD(scene_data,sample_inds[i],root_dir)
+                newData = loadMD(scene_data,i,root_dir)
                 finalData['image0'] = tf.concat((finalData['image0'],newData['image0']),axis=0)
                 finalData['depth0'] = tf.concat((finalData['depth0'],newData['depth0']),axis=0)
                 finalData['T_0to1'] = tf.concat((finalData['T_0to1'],newData['T_0to1']),axis=0)
