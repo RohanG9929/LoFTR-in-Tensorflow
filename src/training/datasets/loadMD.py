@@ -89,9 +89,9 @@ def read_megadepth_gray(path, resize=None, df=None, padding=False, augment_fn=No
         padding (bool): If set to 'True', zero-pad resized images to squared size.
         augment_fn (callable, optional): augments images with pre-defined visual effects
     Returns:
-        image (tf.tensor): (1, h, w)
-        mask (tf.tensor): (h, w)
-        scale (tf.tensor): [w/w_new, h/h_new]        
+        image (tf .tensor): (1, h, w)
+        mask (tf .tensor): (h, w)
+        scale (tf .tensor): [w/w_new, h/h_new]        
     """
     # read image
     image = cv2.imread(path,0)
@@ -205,7 +205,7 @@ def read_data(batch_size):
             if i%(batch_size-1)==0 and i!=0:
                 scenes.append(finalData)
                 finalData = {}
-        return scenes
+    return scenes
 
 
 
