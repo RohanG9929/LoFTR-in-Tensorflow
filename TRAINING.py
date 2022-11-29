@@ -44,8 +44,8 @@ def train_step(data):
     return lossData['loss']
 
 root_dir = './src/training/datasets/megadepth/'
-epochs = 10
-scenes = read_fullMD_data(batch_size=4,npz_dir= os.path.join(root_dir,'megadepth_indices/scene_info_0.1_0.7/*'),root_dir=root_dir)
+epochs = 3
+scenes = read_fullMD_data(batch_size=4,npz_dir= os.path.join(root_dir,'megadepth_indices/scene_info_0.1_0.7/'),root_dir=root_dir)
 logger.info(f"Data Loaded!")
 loss_all=[]
 logger.info(f"Trainer initialized!")

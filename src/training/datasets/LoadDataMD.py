@@ -179,10 +179,18 @@ def loadMD(data,idx,root_dir):
 
 
 def read_fullMD_data(batch_size, npz_dir, root_dir):
-    list_of_batches = []
+    stringlist_ofscenes = []
+    with open(osp.join(root_dir, 'megadepth_indices/trainvaltest_list/train_list.txt')) as file:
+        while (line := file.readline().rstrip()):
+            stringlist_ofscenes.append(line)
 
-    for npz_file in tqdm(glob.glob(npz_dir),desc='Loading Scenes'):
-        scene_data = np.load(npz_file,allow_pickle=True)
+
+    list_of_batches = []
+    for sceneName in tqdm(stringlist_ofscenes,desc='Loading Scenes'):
+        scene_data = np.load(npz_dir+sceneName,allow_pickle=True)
+
+    # for npz_file in tqdm(glob.glob(npz_dir),desc='Loading Scenes'):
+    #     scene_data = np.load(npz_file,allow_pickle=True)
     
         # scene_by_covisibility_score=[]
         sample_inds = np.random.randint(0,len(scene_data['pair_infos']), 100)

@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 root_dir = './src/training/datasets/megadepth_test/'
 megadepthPath = './src/training/datasets/megadepth_test/megadepth_test_1500_scene_info/'
-data = [np.load(''+megadepthPath+'0015_0.3_0.5.npz',allow_pickle=True),
+allNPZ = [np.load(''+megadepthPath+'0015_0.3_0.5.npz',allow_pickle=True),
         np.load(''+megadepthPath+'0022_0.3_0.5.npz',allow_pickle=True),
         np.load(''+megadepthPath+'0022_0.5_0.7.npz',allow_pickle=True)]
 
@@ -184,7 +184,7 @@ reduce_data_size = 1
 
 def read_data(batch_size):
     scenes=[]
-    for data in tqdm(data,desc='Loading Scenes'):
+    for data in tqdm(allNPZ,desc='Loading Scenes'):
         for i in range(int(len(data['pair_infos'])/reduce_data_size)):
             if i==0 or len(finalData)==0:
                 finalData = loadMD(data,i)
