@@ -19,7 +19,10 @@ tf.config.run_functions_eagerly(True)
 config,_config = giveConfig()
 checkpointPath = "./weights/megadepth/cp_Megadepth.ckpt"
 
+
+optimizer_init=tf.keras.optimizers.Adam(learning_rate=0.0001)
 optimizer_1=tf.keras.optimizers.Adam(learning_rate=0.001)
+
 matcher=LoFTR(config=_config['loftr']) 
 modelLoss=LoFTRLoss(_config) 
 
@@ -44,7 +47,7 @@ def train_step(data):
     return lossData['loss']
 
 root_dir = './src/training/datasets/megadepth/'
-epochs = 3
+epochs = 30
 scenes = read_fullMD_data(batch_size=4,npz_dir= os.path.join(root_dir,'megadepth_indices/scene_info_0.1_0.7/'),root_dir=root_dir)
 logger.info(f"Data Loaded!")
 loss_all=[]
