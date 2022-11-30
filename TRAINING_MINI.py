@@ -6,6 +6,7 @@ import matplotlib.cm as cm
 from loguru import logger
 from tqdm import tqdm
 print(os.getcwd())
+import time 
 # os.chdir("LoFTR-in-Tensorflow")
 
 from src.loftr.LoFTR_TF import LoFTR
@@ -18,17 +19,17 @@ from src.loftr.utils.plotting_TF import make_matching_figure
 from src.configs.getConfig import giveConfig
 tf.config.run_functions_eagerly(True)
 
+tf.debugging.set_log_device_placement(True)
+gpus = tf.config.list_logical_devices('GPU')
+strategy = tf.distribute.MultiWorkerMirroredStrategy(gpus)
+
 config,_config = giveConfig()
 checkpointPath = "./weights/miniMegadepth/cp_Megadepth.ckpt"
 
-optimizer_1=tf.keras.optimizers.Adam(learning_rate=0.001)
-matcher=LoFTR(config=_config['loftr']) 
-modelLoss=LoFTRLoss(_config) 
-
-tf.debugging.set_log_device_placement(True)
-gpus = tf.config.list_logical_devices('GPU')
-strategy = tf.distribute.MirroredStrategy(gpus)
-
+with strategy.scope():
+    optimizer_1=tf.keras.optimizers.Adam(learning_rate=0.001)
+    matcher=LoFTR(config=_config['loftr']) 
+    modelLoss=LoFTRLoss(_config) 
 
 ##############################
 #Init Training
@@ -53,12 +54,15 @@ def train_step(data):
 root_dir = './src/training/datasets/megadepth/'
 epochs = 3
 # scenes = read_fullMD_data(batch_size=4,npz_dir= os.path.join(root_dir,'megadepth_indices/scene_info_0.1_0.7/'),root_dir=root_dir)
-scenes = read_data(batch_size=4)
+with strategy.scope():
+    scenes = read_data(batch_size=4)
+
 logger.info(f"Data Loaded!")
 logger.info(f"Data Loaded!{len(scenes)}")
 loss_all=[]
 logger.info(f"Trainer initialized!")
 
+t1 = time.time()
 ##############################
 #Begin Training
 ##############################
@@ -70,9 +74,10 @@ for epoch in range(epochs):
     print(f'loss for epoch {epoch} is {tf.math.reduce_sum(loss)/(len(scenes))}')
     loss_all.append(float(tf.math.reduce_sum(loss)/(len(scenes))))
 
-
+t2 = time.time()
 ######################################################################mess
-logger.info(f"Training Done!")
+logger.info(f"Training Done! in {t2-t1} seconds")
+
 matcher.save_weights(checkpointPath)
 
 print("Loss progression is:")
