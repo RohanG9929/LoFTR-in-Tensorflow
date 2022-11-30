@@ -25,6 +25,11 @@ optimizer_1=tf.keras.optimizers.Adam(learning_rate=0.001)
 matcher=LoFTR(config=_config['loftr']) 
 modelLoss=LoFTRLoss(_config) 
 
+tf.debugging.set_log_device_placement(True)
+gpus = tf.config.list_logical_devices('GPU')
+strategy = tf.distribute.MirroredStrategy(gpus)
+
+
 ##############################
 #Init Training
 ##############################
@@ -60,7 +65,8 @@ logger.info(f"Trainer initialized!")
 for epoch in range(epochs):
     loss=0
     for batch in tqdm((scenes),desc='Running Epoch '+str(epoch)):
-        loss+=train_step(batch)
+        with strategy.scope():
+            loss+=train_step(batch)
     print(f'loss for epoch {epoch} is {tf.math.reduce_sum(loss)/(len(scenes))}')
     loss_all.append(float(tf.math.reduce_sum(loss)/(len(scenes))))
 
