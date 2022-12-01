@@ -10,7 +10,7 @@ git clone link
 
 cd loftr_tf
 
-conda env create environment.yaml
+conda env create -f environment.yaml
 
 ## Usage
 
