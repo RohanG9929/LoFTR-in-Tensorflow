@@ -24,26 +24,6 @@ depth_max_size = 2000 if depth_padding else None
 # self.mgdpt_df = config.DATASET.MGDPT_DF  # 8
 coarse_scale = 0.125
 
-def load_array_from_s3(
-    path, client, cv_type,
-    use_h5py=False,
-):
-    byte_str = client.Get(path)
-    try:
-        if not use_h5py:
-            raw_array = np.fromstring(byte_str, np.uint8)
-            data = cv2.imdecode(raw_array, cv_type)
-        else:
-            f = io.BytesIO(byte_str)
-            data = np.array(h5py.File(f, 'r')['/depth'])
-    except Exception as ex:
-        print(f"==> Data loading failure: {path}")
-        raise ex
-
-    assert data is not None
-    return data
-
-
 
 def get_resized_wh(w, h, resize=None):
     if resize is not None:  # resize the longer edge
@@ -187,7 +167,7 @@ reduce_data_size = 1
 def read_data(batch_size):
     scenes=[]
     for data in tqdm(allNPZ,desc='Loading Scenes'):
-        for i in range(int(len(data['pair_infos'])/reduce_data_size)):
+        for i in range(100):
             if i==0 or len(finalData)==0:
                 finalData = loadMD(data,i)
             else:
