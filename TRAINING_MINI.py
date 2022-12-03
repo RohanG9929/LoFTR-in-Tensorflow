@@ -64,7 +64,7 @@ def main():
                 lossData = modelLoss(fineSuperData)
 
             innerLoss = innerLoss + lossData['loss']
-            grads = tape.gradient(lossData['loss'], matcher.trainable_variables)
+            grads = tape.gradient(lossData['loss'], matcher.trainable_variables, unconnected_gradients='zero')
             optimizer_1.apply_gradients(zip(grads, matcher.trainable_variables))
             return innerLoss
 
