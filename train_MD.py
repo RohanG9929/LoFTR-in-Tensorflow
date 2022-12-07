@@ -90,7 +90,7 @@ class trainer():
 
 
 def train(train_ds, trainer, epoch: int):
-  epochLoss = 0
+  epochLoss = 0.0
   for currentBatchNum in tqdm(range(train_ds.giveNumScenes()),desc='Running Epoch '+str(epoch+ 1)):
     currentBatchLList = train_ds.read_scene(4,currentBatchNum)
     for currentBatch in tqdm(currentBatchLList,desc='Training through batches in scene '+str(currentBatchNum+1)):
