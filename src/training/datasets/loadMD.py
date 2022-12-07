@@ -8,11 +8,12 @@ from tqdm import tqdm
 
 root_dir = './src/training/datasets/megadepth_test/'
 megadepthPath = './src/training/datasets/megadepth_test/megadepth_test_1500_scene_info/'
-allNPZ = [np.load(''+megadepthPath+'0015_0.1_0.3.npz',allow_pickle=True),
-        np.load(''+megadepthPath+'0015_0.3_0.5.npz',allow_pickle=True),
-        np.load(''+megadepthPath+'0022_0.1_0.3.npz',allow_pickle=True),
-        np.load(''+megadepthPath+'0022_0.3_0.5.npz',allow_pickle=True),
-        np.load(''+megadepthPath+'0022_0.5_0.7.npz',allow_pickle=True)]
+allNPZ = [np.load(''+megadepthPath+'0015_0.1_0.3.npz',allow_pickle=True)
+        # np.load(''+megadepthPath+'0015_0.3_0.5.npz',allow_pickle=True),
+        # np.load(''+megadepthPath+'0022_0.1_0.3.npz',allow_pickle=True),
+        # np.load(''+megadepthPath+'0022_0.3_0.5.npz',allow_pickle=True),
+        # np.load(''+megadepthPath+'0022_0.5_0.7.npz',allow_pickle=True)
+        ]
 
 img_resize=640#None
 df=None

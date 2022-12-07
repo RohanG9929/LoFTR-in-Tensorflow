@@ -8,13 +8,13 @@ from loguru import logger
 from tqdm import tqdm
 print(os.getcwd())
 from time import time
-# os.chdir("LoFTR-in-Tensorflow")
+os.chdir("LoFTR-in-Tensorflow")
 
 from src.loftr.LoFTR_TF import LoFTR
 from src.training.supervisionTF import compute_supervision_coarse, compute_supervision_fine
 from src.training.loftr_lossTF import LoFTRLoss
-from src.training.datasets.LoadDataMD import read_fullMD_data
-from src.training.datasets.loadMD import read_data
+from src.training.datasets.LoadDataMD import MegadepthData#read_fullMD_data
+# from src.training.datasets.loadMD import read_data
 
 from src.loftr.utils.plotting_TF import make_matching_figure
 from src.configs.getConfig import giveConfig
@@ -59,7 +59,8 @@ class trainer():
     def distributed_train_step(self, currentBatch):
         batchLoss = self.strategy.run(self.train_step, args=([currentBatch]))
         self.runningLoss.append(batchLoss)
-        return batchLoss
+        rbatchLoss = self.strategy.experimental_local_results(batchLoss)
+        return rbatchLoss
 
     def singleTest(self,imagePaths, outPath):
         img0_raw = cv.resize(cv.imread(imagePaths[0], cv.IMREAD_GRAYSCALE), (640, 480))
@@ -86,12 +87,14 @@ class trainer():
 
 def train(train_ds, trainer, epoch: int):
   epochLoss = []
-  for currentBatch in tqdm(train_ds,desc='Running Epoch '+str(epoch+ 1)):
+  for currentBatchNum in tqdm(range(train_ds.giveNumScenes()),desc='Running Epoch '+str(epoch+ 1)):
+    currentBatch = train_ds.read_scene(4,currentBatchNum)
     result = trainer.distributed_train_step(currentBatch)
     # logger.info(f'running...')
-    epochLoss.append(result)
+    for idx in range(trainer.getNumDevices()):
+        epochLoss += (result[idx])
 
-  #epochLoss = float(tf.math.reduce_sum(epochLoss)/(len(train_ds)))
+  epochLoss = float(tf.math.reduce_sum(epochLoss)/(len(train_ds)))
   return epochLoss
 
 
@@ -108,13 +111,14 @@ def main(epochs):
     logger.info(f'Number of devices: {num_devices}')
 
     # initialize TensorBoard summary helper
-    t1 = time()
-    scenes = read_data(batch_size=4)
-    t2 = time()
-    logger.info(f"Data Loaded {len(scenes)} scenes in {t2-t1} seconds")
+    root_dir = './src/training/datasets/megadepth/'
+    npz_dir= os.path.join(root_dir,'megadepth_indices/scene_info_0.1_0.7/')
+    # scenes = read_fullMD_data(batch_size=4,),root_dir=root_dir)
+    # scenes = read_data(batch_size=4)
+    # logger.info(f"Data Loaded {len(scenes)} scenes in {t2-t1} seconds")
 
     # scenes = strategy.experimental_distribute_dataset(scenes)
-
+    myData = MegadepthData(root_dir,npz_dir)
     myTrainer = trainer(num_devices,strategy=strategy)
 
     allLoss = []
@@ -122,7 +126,8 @@ def main(epochs):
         logger.info(f'Epoch {epoch + 1:03d}/{epochs:03d}')
 
         start = time()
-        currentLoss = train( scenes, myTrainer, epoch)
+
+        currentLoss = train(myData, myTrainer, epoch)
         logger.info(f'Current Loss = {currentLoss}')
         allLoss.append(currentLoss)
         # results = test(args, test_ds, gan, summary, epoch)
