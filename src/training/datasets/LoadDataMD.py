@@ -206,7 +206,7 @@ class MegadepthData():
                     finalData['depth1'] = tf.concat((finalData['depth1'],newData['depth1']),axis=0)
                     finalData['scale0'] = tf.concat((finalData['scale0'],newData['scale0']),axis=0)
                     finalData['scale1'] = tf.concat((finalData['scale1'],newData['scale1']),axis=0)    
-                if i%(batch_size-1)==0 and i!=0:
+                if i%(batch_size)==0 and i!=0:
                     list_of_batches.append(finalData)
                     finalData = {}
 
