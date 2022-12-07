@@ -121,8 +121,12 @@ def main(epochs):
     # scenes = strategy.experimental_distribute_dataset(scenes)
     myData = MegadepthData(root_dir,npz_dir)
     myTrainer = trainer(num_devices,strategy=strategy)
+    try:
+        myTrainer.loadWeights("./weights/other/cp_other.ckpt")
+    except:
+        logger.warning(f'No previous weights to load!')
 
-    #Being training
+    #Begin training
     allLoss = []
     for epoch in range(epochs):
         logger.info(f'Epoch {epoch + 1:03d}/{epochs:03d}')
