@@ -151,7 +151,7 @@ def compute_pose_errors(data, config):
 
 # --- METRIC AGGREGATION ---
 
-def error_auc(errors, thresholds):
+def error_auc(errors, thresholds=[5, 10, 20]):
     """
     Args:
         errors (list): [N,]

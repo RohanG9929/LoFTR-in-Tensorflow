@@ -89,7 +89,7 @@ class trainer():
 
 
 def train(train_ds, trainer, epoch: int):
-  epochLoss = []
+  epochLoss = 0
   for currentBatch in tqdm(train_ds,desc='Running Epoch '+str(epoch+ 1)):
     result = trainer.distributed_train_step(currentBatch)
     # logger.info(f'running...')
