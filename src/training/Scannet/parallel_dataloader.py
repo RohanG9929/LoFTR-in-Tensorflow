@@ -189,15 +189,8 @@ def import_scannet(npz_path, sens_folders_path, intrinsics_path, score_thresh, n
     end = time.time() 
     print("time taken for "+ str(no_scenes) + " scenes =" + str(end-start) + "seconds")
 
-    # SAVING THE LIST OF DICTIONARIES AS A ".txt" FILE
-    #open file
-    with open('list_of_dicts.txt', 'w+') as f:
-        # write elements of list
-        for items in list_of_batches:
-            f.write('%s\n' %items)
-        print("File written successfully")
-    # close the file
-    f.close()
+    # SAVING THE LIST OF DICTIONARIES of TENSORS AS A ".npy" FILE
+    np.save( "/Users/surajreddy/Desktop/perception project/list_test", list_of_batches)
 
     return list_of_batches
 
