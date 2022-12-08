@@ -18,8 +18,6 @@ from src.loftr.LoFTR_TF import LoFTR
 from src.training.supervisionTF import compute_supervision_coarse, compute_supervision_fine
 from src.training.loftr_lossTF import LoFTRLoss
 from src.training.datasets.LoadDataMD import MegadepthData#read_fullMD_data
-# from src.training.datasets.loadMD import read_data
-
 from src.loftr.utils.plotting_TF import make_matching_figure
 from src.configs.getConfig import giveConfig
 # tf.config.run_functions_eagerly(True)
@@ -30,12 +28,16 @@ class trainer():
         self.config,self._config = giveConfig()
         self.num_devices = num_devices
         self.runningLoss = []
+        self.dataDict = {}
 
         with self.strategy.scope():
             self.A_optimizer=tf.keras.optimizers.Adam(learning_rate=0.001)
             self.matcher=LoFTR(config=self._config['loftr']) 
             self.modelLoss=LoFTRLoss(self._config) 
          
+    def getNewestData(self):
+        return self.dataDict
+
     def getNumDevices(self):
         return self.num_devices
 
@@ -91,18 +93,19 @@ class trainer():
         make_matching_figure(img0_raw, img1_raw, mkpts0, mkpts1, color, text=text, path=outPath)
 
 
+
 def train(train_ds, trainer, epoch: int):
     epochLoss = 0.0
     # for currentBatchNum in tqdm(range(train_ds.giveNumScenes()),desc='Running Epoch '+str(epoch+ 1)):
     currentBatchNum = np.random.randint(0,train_ds.giveNumScenes())
-    currentBatchLList = train_ds.read_scene(4,currentBatchNum)
+    currentBatchLList = train_ds.read_scene(4,currentBatchNum,100)
     for currentBatch in tqdm(currentBatchLList,desc='Training through batches in scene '+str(currentBatchNum+1)):
         result = trainer.distributed_train_step(currentBatch)
         # logger.info(f'running...')
         for idx in range(trainer.getNumDevices()):
             epochLoss += (result[idx])
 
-    epochLoss = float(tf.math.reduce_sum(epochLoss)/(len(currentBatchLList)))
+    epochLoss = float(tf.math.reduce_sum(epochLoss)/(len(train_ds)))
     return epochLoss
 
 
@@ -121,19 +124,15 @@ def main(epochs):
     # initialize Trainer and Dataloader
     root_dir = './src/training/datasets/megadepth/'
     npz_dir= os.path.join(root_dir,'megadepth_indices/scene_info_0.1_0.7/')
-    config,_config = giveConfig()
     # scenes = strategy.experimental_distribute_dataset(scenes)
     myData = MegadepthData(root_dir,npz_dir)
-    myTrainer = trainer(num_devices,strategy=strategy,config=config,_config=_config)
+    myTrainer = trainer(num_devices,strategy=strategy)
     try:
-        # myTrainer.loadWeights("./weights/other/cp_smallMegadepth.ckpt")
-        myTrainer.loadWeights("./weights/megadepth/cp_Megadepth.ckpt")
+        myTrainer.loadWeights("./weights/other/cp_other.ckpt")
     except:
         logger.warning(f'No previous weights to load!')
-    
-    
 
-    #Being training
+    #Begin training
     allLoss = []
     for epoch in range(epochs):
         logger.info(f'Epoch {epoch + 1:03d}/{epochs:03d}')
@@ -150,11 +149,8 @@ def main(epochs):
         # if epoch % 10 == 0:
         # gan.save_checkpoint()
         # utils.plot_cycle(plot_ds, gan, summary, epoch)
-        myTrainer.saveWeights("./weights/megadepth/cp_Megadepth.ckpt")
     print(allLoss)
-
-    data_for_metrics = myTrainer.getNewestData()
-    
+    myTrainer.saveWeights("./weights/miniMegadepthStrat/cp_Megadepth.ckpt")
 
     myTrainer.singleTest(["./other/scene0738_00_frame-000885.jpg",
     "./other/scene0738_00_frame-001065.jpg"],"./src/training/figs/matches_miniMD.jpg")

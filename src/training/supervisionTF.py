@@ -81,6 +81,12 @@ def spvs_coarse(data, config):
         grid_pt0_i = mask_pts_at_padded_regions(grid_pt0_i, data['mask0'])
         grid_pt1_i = mask_pts_at_padded_regions(grid_pt1_i, data['mask1'])
 
+
+    minVal_1 = tf.math.minimum(tf.cast(data['depth0'].shape[1],tf.double),tf.cast(data['depth0'].shape[2],tf.double))
+    minVal_2 = tf.math.minimum(tf.cast(data['depth1'].shape[1],tf.double),tf.cast(data['depth1'].shape[2],tf.double))
+    grid_pt0_i = tf.clip_by_value(grid_pt0_i, 0, minVal_1, name=None)
+    grid_pt1_i = tf.clip_by_value(grid_pt1_i, 0, minVal_2, name=None)
+    
     # warp kpts bi-directionally and resize them to coarse-level resolution
     # (no depth consistency check, since it leads to worse results experimentally)
     # (unhandled edge case: points with 0-depth will be warped to the left-up corner)
