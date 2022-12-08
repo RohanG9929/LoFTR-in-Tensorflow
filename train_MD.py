@@ -108,7 +108,7 @@ def train(train_ds,numScenes, trainer, epoch: int):
             for idx in range(trainer.getNumDevices()):
                 epochLoss += (result[idx])
 
-    epochLoss = float(tf.math.reduce_sum(epochLoss)/(len(numScenes)))
+    epochLoss = float(tf.math.reduce_sum(epochLoss)/((numScenes)))
     return epochLoss
 
 
