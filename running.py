@@ -1,11 +1,15 @@
 import cv2 as cv
 import tensorflow as tf
 import h5py
+import os
 import matplotlib.cm as cm
 from src.loftr.utils.plotting_TF import make_matching_figure
 from src.configs.getConfig import giveConfig
 from src.loftr.LoFTR_TF import LoFTR
-
+try:
+  os.chdir("LoFTR-in-Tensorflow")
+except:
+  print("Directory is fine")
 print(tf.__version__)
 print(tf.keras.__version__)
 config,_config = giveConfig()
