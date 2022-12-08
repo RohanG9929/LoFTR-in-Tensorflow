@@ -121,7 +121,7 @@ def main(epochs):
 
     # initialize TensorBoard summary helper
     t1 = time()
-    scenes = read_data(batch_size=4)
+    scenes = read_data(batch_size=4) #scenes must be a list of dictionaries
     t2 = time()
     logger.info(f"Data Loaded {len(scenes)} scenes in {t2-t1} seconds")
 
@@ -139,7 +139,7 @@ def main(epochs):
         logger.info(f'Epoch {epoch + 1:03d}/{epochs:03d}')
 
         start = time()
-        currentLoss = train( scenes, myTrainer, epoch)
+        currentLoss = train(scenes, myTrainer, epoch)
         logger.info(f'Current Loss = {currentLoss}')
         allLoss.append(currentLoss)
         end = time()

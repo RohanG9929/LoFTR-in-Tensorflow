@@ -183,6 +183,29 @@ class MegadepthData():
                 self.stringlist_ofscenes.append(line)
 
     def read_scene(self,batch_size,sceneNum,numPairs):
+        """ 
+        Output is a list of dictionaries
+        
+        Args:
+        batch_size: (N) number of image pairs per dict
+        sceneNum: the particular scene to load from the training samples
+        numPairs: the number of total image pairs to load per scene
+            
+        Returns:
+            list of dicts with elements:
+            {
+            image0 (tf.Tensor): [N,1, H, W],
+            image1 (tf.Tensor): [N,1, H, W], 
+            depth0 (tf.Tensor): [N, H, W],
+            depth1 (tf.Tensor): [N, H, W],
+            T_0to1 (tf.Tensor): [N, 3, 4],
+            T_1to0 (tf.Tensor): [N, 3, 4],
+            K0 (tf.Tensor): [N, 3, 3],
+            K1 (tf.Tensor): [N, 3, 3],
+            scale0 (tf.Tensor): [N, 2],
+            scale0 (tf.Tensor): [N, 2]
+            }
+        """
         assert sceneNum<368
         list_of_batches = []
         finalData = {}
@@ -214,11 +237,29 @@ class MegadepthData():
 
 
     def read_fullMD_data(self,batch_size,numScenes):
-        # stringlist_ofscenes = []
-        # with open(osp.join(self.root_dir, 'megadepth_indices/trainvaltest_list/train_list.txt')) as file:
-        #     while (line := file.readline().rstrip()):
-        #         stringlist_ofscenes.append(line)
-
+        """ 
+        Output is a list of dictionaries
+        
+        Args:
+        batch_size: (N) number of image pairs per dict
+        numScenes: the number of scenes to load from the training samples
+            
+        Returns:
+            list of dicts with elements:
+            {
+            image0 (tf.Tensor): [N,1, H, W],
+            image1 (tf.Tensor): [N,1, H, W], 
+            depth0 (tf.Tensor): [N, H, W],
+            depth1 (tf.Tensor): [N, H, W],
+            T_0to1 (tf.Tensor): [N, 3, 4],
+            T_1to0 (tf.Tensor): [N, 3, 4],
+            K0 (tf.Tensor): [N, 3, 3],
+            K1 (tf.Tensor): [N, 3, 3],
+            scale0 (tf.Tensor): [N, 2],
+            scale0 (tf.Tensor): [N, 2]
+            }
+        """
+ 
         list_of_batches = []
         for _ in tqdm(range(len(numScenes)),desc='Loading Scenes'):
             sceneName = self.stringlist_ofscenes[np.random.randint(0,len(self.stringlist_ofscenes))]
