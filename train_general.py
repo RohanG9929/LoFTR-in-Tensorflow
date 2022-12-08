@@ -145,7 +145,6 @@ def main(epochs):
         end = time()
         logger.info(f'Time taken for Epoch {epoch+1} = {end-start}')
 
-
         myTrainer.saveWeights("./weights/other/cp_other.ckpt")
     print(allLoss)
     
