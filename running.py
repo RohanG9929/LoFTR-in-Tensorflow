@@ -18,7 +18,7 @@ config,_config = giveConfig()
 
 #Creating the matcher 
 matcher=LoFTR(config=_config['loftr']) 
-matcher.load_weights("./weights/other/cp_smallMegadepth.ckpt")
+matcher.load_weights("./weights/megadepth/cp_Megadepth.ckpt")
 
 #loading in the images for the current batch
 img0_pth = "./other/capitolTest1.jpg"#"./src/training/datasets/unused/Scenes/scene3/Images/628.jpg"
