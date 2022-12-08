@@ -184,13 +184,13 @@ class MegadepthData():
             while (line := file.readline().rstrip()):
                 self.stringlist_ofscenes.append(line)
 
-    def read_scene(self,batch_size,sceneNum):
+    def read_scene(self,batch_size,sceneNum,numPairs):
         assert sceneNum<368
         list_of_batches = []
         finalData = {}
         sceneName = self.stringlist_ofscenes[sceneNum-1]
         scene_data = np.load(self.npz_dir+sceneName+'.npz',allow_pickle=True)
-        sample_inds = np.random.randint(0,len(scene_data['pair_infos']), 100)
+        sample_inds = np.random.randint(0,len(scene_data['pair_infos']), numPairs)
         for i in (sample_inds):
                 if i==0 or len(finalData)==0:
                     finalData = self.loadMD(scene_data,i)

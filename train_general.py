@@ -29,12 +29,16 @@ class trainer():
         self.config,self._config = giveConfig()
         self.num_devices = num_devices
         self.runningLoss = []
+        self.dataDict = {}
 
         with self.strategy.scope():
             self.A_optimizer=tf.keras.optimizers.Adam(learning_rate=0.001)
             self.matcher=LoFTR(config=self._config['loftr']) 
             self.modelLoss=LoFTRLoss(self._config) 
          
+    def getNewestData(self):
+        return self.dataDict
+
     def getNumDevices(self):
         return self.num_devices
 
@@ -59,12 +63,13 @@ class trainer():
         self.A_optimizer.apply_gradients(zip(grads, self.matcher.trainable_weights))
         # print("Weights Updated")
 
-        return lossData['loss']
+        return lossData['loss'],lossData
 
     # @tf.function
     def distributed_train_step(self, currentBatch):
-        batchLoss = self.strategy.run(self.train_step, args=([currentBatch]))
-        self.runningLoss.append(batchLoss)
+        batchLoss,dataDict = self.strategy.run(self.train_step, args=([currentBatch]))
+        # self.runningLoss.append(batchLoss)
+        self.dataDict = dataDict
         rbatchLoss = self.strategy.experimental_local_results(batchLoss)
         return rbatchLoss
 
@@ -138,13 +143,10 @@ def main(epochs):
         currentLoss = train( scenes, myTrainer, epoch)
         logger.info(f'Current Loss = {currentLoss}')
         allLoss.append(currentLoss)
-        # results = test(args, test_ds, gan, summary, epoch)
         end = time()
         logger.info(f'Time taken for Epoch {epoch+1} = {end-start}')
 
-        # if epoch % 10 == 0:
-        # gan.save_checkpoint()
-        # utils.plot_cycle(plot_ds, gan, summary, epoch)
+
         myTrainer.saveWeights("./weights/other/cp_other.ckpt")
     print(allLoss)
     

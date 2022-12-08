@@ -154,7 +154,6 @@ def main(epochs):
     print(allLoss)
 
     data_for_metrics = myTrainer.getNewestData()
-    data_for_metrics = compute_pose_errors(data_for_metrics,config)
     
 
     myTrainer.singleTest(["./other/scene0738_00_frame-000885.jpg",

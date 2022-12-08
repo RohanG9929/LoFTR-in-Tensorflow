@@ -30,12 +30,16 @@ class trainer():
         self.config,self._config = giveConfig()
         self.num_devices = num_devices
         self.runningLoss = []
+        self.dataDict = {}
 
         with self.strategy.scope():
             self.A_optimizer=tf.keras.optimizers.Adam(learning_rate=0.001)
             self.matcher=LoFTR(config=self._config['loftr']) 
             self.modelLoss=LoFTRLoss(self._config) 
          
+    def getNewestData(self):
+        return self.dataDict
+
     def getNumDevices(self):
         return self.num_devices
 
@@ -95,7 +99,7 @@ class trainer():
 def train(train_ds, trainer, epoch: int):
     epochLoss = 0.0
     for currentBatchNum in tqdm(range(train_ds.giveNumScenes()),desc='Running Epoch '+str(epoch+ 1)):
-        currentBatchLList = train_ds.read_scene(4,currentBatchNum)
+        currentBatchLList = train_ds.read_scene(4,currentBatchNum,100)
         for currentBatch in tqdm(currentBatchLList,desc='Training through batches in scene '+str(currentBatchNum+1)):
             result = trainer.distributed_train_step(currentBatch)
             # logger.info(f'running...')
