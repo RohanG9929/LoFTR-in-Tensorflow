@@ -7,8 +7,6 @@ import os.path as osp
 from tqdm import tqdm
 import glob
 
-
-
 class MegadepthData():
     def __init__(self,root_dir,npz_dir):
 
@@ -191,36 +189,39 @@ class MegadepthData():
         sceneName = self.stringlist_ofscenes[sceneNum-1]
         scene_data = np.load(self.npz_dir+sceneName+'.npz',allow_pickle=True)
         sample_inds = np.random.randint(0,len(scene_data['pair_infos']), numPairs)
-        for i in (sample_inds):
-                if i==0 or len(finalData)==0:
-                    finalData = self.loadMD(scene_data,i)
-                else:
-                    newData = self.loadMD(scene_data,i)
-                    finalData['image0'] = tf.concat((finalData['image0'],newData['image0']),axis=0)
-                    finalData['depth0'] = tf.concat((finalData['depth0'],newData['depth0']),axis=0)
-                    finalData['T_0to1'] = tf.concat((finalData['T_0to1'],newData['T_0to1']),axis=0)
-                    finalData['T_1to0'] =  tf.concat((finalData['T_1to0'],newData['T_1to0']),axis=0)
-                    finalData['K0'] = tf.concat((finalData['K0'],newData['K0']),axis=0)
-                    finalData['K1'] =  tf.concat((finalData['K1'],newData['K1']),axis=0)
-                    finalData['image1'] = tf.concat((finalData['image1'],newData['image1']),axis=0)
-                    finalData['depth1'] = tf.concat((finalData['depth1'],newData['depth1']),axis=0)
-                    finalData['scale0'] = tf.concat((finalData['scale0'],newData['scale0']),axis=0)
-                    finalData['scale1'] = tf.concat((finalData['scale1'],newData['scale1']),axis=0)    
-                if i%(batch_size)==0 and i!=0:
-                    list_of_batches.append(finalData)
-                    finalData = {}
-
+        for i,idx in enumerate(sample_inds):
+            this_i = i+1
+            if len(finalData)==0:
+                finalData = self.loadMD(scene_data,idx)
+            else:
+                newData = self.loadMD(scene_data,idx)
+                finalData['image0'] = tf.concat((finalData['image0'],newData['image0']),axis=0)
+                finalData['depth0'] = tf.concat((finalData['depth0'],newData['depth0']),axis=0)
+                finalData['T_0to1'] = tf.concat((finalData['T_0to1'],newData['T_0to1']),axis=0)
+                finalData['T_1to0'] =  tf.concat((finalData['T_1to0'],newData['T_1to0']),axis=0)
+                finalData['K0'] = tf.concat((finalData['K0'],newData['K0']),axis=0)
+                finalData['K1'] =  tf.concat((finalData['K1'],newData['K1']),axis=0)
+                finalData['image1'] = tf.concat((finalData['image1'],newData['image1']),axis=0)
+                finalData['depth1'] = tf.concat((finalData['depth1'],newData['depth1']),axis=0)
+                finalData['scale0'] = tf.concat((finalData['scale0'],newData['scale0']),axis=0)
+                finalData['scale1'] = tf.concat((finalData['scale1'],newData['scale1']),axis=0)    
+            if this_i%(batch_size)==0:
+                list_of_batches.append(finalData)
+                finalData = {}
+        del scene_data
+        del finalData
         return list_of_batches
 
 
-    def read_fullMD_data(self,batch_size):
-        stringlist_ofscenes = []
-        with open(osp.join(self.root_dir, 'megadepth_indices/trainvaltest_list/train_list.txt')) as file:
-            while (line := file.readline().rstrip()):
-                stringlist_ofscenes.append(line)
+    def read_fullMD_data(self,batch_size,numScenes):
+        # stringlist_ofscenes = []
+        # with open(osp.join(self.root_dir, 'megadepth_indices/trainvaltest_list/train_list.txt')) as file:
+        #     while (line := file.readline().rstrip()):
+        #         stringlist_ofscenes.append(line)
 
         list_of_batches = []
-        for sceneName in tqdm(stringlist_ofscenes,desc='Loading Scenes'):
+        for _ in tqdm(range(len(numScenes)),desc='Loading Scenes'):
+            sceneName = self.stringlist_ofscenes[np.random.randint(0,len(self.stringlist_ofscenes))]
             scene_data = np.load(self.npz_dir+sceneName+'.npz',allow_pickle=True)
 
         # for npz_file in tqdm(glob.glob(self.npz_dir),desc='Loading Scenes'):

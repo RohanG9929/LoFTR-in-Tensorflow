@@ -82,8 +82,8 @@ def spvs_coarse(data, config):
         grid_pt1_i = mask_pts_at_padded_regions(grid_pt1_i, data['mask1'])
 
 
-    minVal_1 = tf.math.minimum(tf.cast(data['depth0'].shape[1],tf.double),tf.cast(data['depth0'].shape[2],tf.double))
-    minVal_2 = tf.math.minimum(tf.cast(data['depth1'].shape[1],tf.double),tf.cast(data['depth1'].shape[2],tf.double))
+    minVal_1 = tf.math.minimum(tf.cast(data['depth0'].shape[1]-1,tf.double),tf.cast(data['depth0'].shape[2]-1,tf.double))
+    minVal_2 = tf.math.minimum(tf.cast(data['depth1'].shape[1]-1,tf.double),tf.cast(data['depth1'].shape[2]-1,tf.double))
     grid_pt0_i = tf.clip_by_value(grid_pt0_i, 0, minVal_1, name=None)
     grid_pt1_i = tf.clip_by_value(grid_pt1_i, 0, minVal_2, name=None)
     

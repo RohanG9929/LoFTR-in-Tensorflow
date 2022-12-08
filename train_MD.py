@@ -94,9 +94,13 @@ class trainer():
 
 
 
-def train(train_ds, trainer, epoch: int):
+def train(train_ds,numScenes, trainer, epoch: int):
     epochLoss = 0.0
-    for currentBatchNum in tqdm(range(train_ds.giveNumScenes()),desc='Running Epoch '+str(epoch+ 1)):
+    for scene in tqdm(range(numScenes),desc='Running Epoch '+str(epoch+ 1)):
+        if numScenes==train_ds.giveNumScenes():
+            currentBatchNum = scene
+        else:
+            currentBatchNum = np.random.randint(0,train_ds.giveNumScenes())
         currentBatchLList = train_ds.read_scene(4,currentBatchNum,100)
         for currentBatch in tqdm(currentBatchLList,desc='Training through batches in scene '+str(currentBatchNum+1)):
             result = trainer.distributed_train_step(currentBatch)
@@ -104,7 +108,7 @@ def train(train_ds, trainer, epoch: int):
             for idx in range(trainer.getNumDevices()):
                 epochLoss += (result[idx])
 
-    epochLoss = float(tf.math.reduce_sum(epochLoss)/(len(train_ds)))
+    epochLoss = float(tf.math.reduce_sum(epochLoss)/(len(numScenes)))
     return epochLoss
 
 
@@ -138,7 +142,7 @@ def main(epochs):
 
         start = time()
 
-        currentLoss = train(myData, myTrainer, epoch)
+        currentLoss = train(myData,myData.giveNumScenes(), myTrainer, epoch)
         logger.info(f'Current Loss = {currentLoss}')
         allLoss.append(currentLoss)
         # results = test(args, test_ds, gan, summary, epoch)

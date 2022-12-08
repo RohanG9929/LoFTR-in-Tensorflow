@@ -128,7 +128,7 @@ def main(epochs):
     myData = MegadepthData(root_dir,npz_dir)
     myTrainer = trainer(num_devices,strategy=strategy)
     try:
-        myTrainer.loadWeights("./weights/other/cp_other.ckpt")
+        myTrainer.loadWeights("./weights/megadepth/cp_Megadepth.ckpt")
     except:
         logger.warning(f'No previous weights to load!')
 
@@ -149,8 +149,8 @@ def main(epochs):
         # if epoch % 10 == 0:
         # gan.save_checkpoint()
         # utils.plot_cycle(plot_ds, gan, summary, epoch)
+        myTrainer.saveWeights("./weights/megadepth/cp_Megadepth.ckpt")
     print(allLoss)
-    myTrainer.saveWeights("./weights/miniMegadepthStrat/cp_Megadepth.ckpt")
 
     myTrainer.singleTest(["./other/scene0738_00_frame-000885.jpg",
     "./other/scene0738_00_frame-001065.jpg"],"./src/training/figs/matches_miniMD.jpg")
