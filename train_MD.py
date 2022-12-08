@@ -106,7 +106,7 @@ def train(train_ds,numScenes, trainer, epoch: int):
             result = trainer.distributed_train_step(currentBatch)
             # logger.info(f'running...')
             for idx in range(trainer.getNumDevices()):
-                epochLoss += (result[idx])
+                epochLoss += (result[idx])/(len(currentBatchLList))
 
     epochLoss = float(tf.math.reduce_sum(epochLoss)/((numScenes)))
     return epochLoss
