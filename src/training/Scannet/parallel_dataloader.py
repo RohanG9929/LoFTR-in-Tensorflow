@@ -117,6 +117,32 @@ class SensorData:
         return tf_pose
 
 def extraction(sens_file_name, npz_path, sens_folders_path, intrinsics_path, score_thresh, no_sample_pairs_per_scene, batch_size, list_of_batches):
+    """
+    Output is a list of dictionaries
+
+    Args:
+    npz_path: path to folder of npz files (scannet_indices)
+    sens_folders_path: path to folder of scene folders holding .sens files
+    intrinsics_path: path to intrinsics file provided by loftr
+    score_thresh: covisibility score threshold (0.4)
+    no_sample_pairs_per_scene: total number of pairs sampled for a given scene
+    batch_size: number of image pairs concatenated for training
+    no_scenes: number of scenes to subsample for a given epoch
+
+    Returns:
+    List of Dicts with elements:
+    {
+        image0 (tf.tensor): (N,1,H,W)
+        image1 (tf.tensor): (N,1,H,W)
+        depth0 (tf.tensor): (N,H,W)
+        depth1 (tf.tensor): (N,H,W)
+        T_0to1 (tf.tensor): (N,4,4)
+        T_1to0 (tf.tensor): (N,4,4)
+        K0 (tf.tensor): (N,3,3)
+        K1 (tf.tensor): (N,3,3)
+    }
+        
+    """
     intrinsics_dict = np.load(intrinsics_path) #ONLY 1 INTRINSICS FILE FOR WHOLE DATASET
     # ctr = 0
     # for pair_info_filename_path in tqdm(glob.iglob(npz_path+'*'+'.npz')): #ITERATE FOR ALL NPZ FILES IN SCANNET_INDICES
