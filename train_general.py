@@ -8,7 +8,10 @@ from loguru import logger
 from tqdm import tqdm
 print(os.getcwd())
 from time import time
-# os.chdir("LoFTR-in-Tensorflow")
+try:
+  os.chdir("LoFTR-in-Tensorflow")
+except:
+  print("Directory is fine")
 
 from src.loftr.LoFTR_TF import LoFTR
 from src.training.supervisionTF import compute_supervision_coarse, compute_supervision_fine
