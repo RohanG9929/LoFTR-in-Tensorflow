@@ -98,8 +98,6 @@ class ResNetFPN_8_2(tf.keras.Model):
                 #nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
                 wt_initializer = tf.keras.initializers.HeNormal()
                 m.kernel_initializer = wt_initializer
-                #! no "fan out" mode available in "tf-HeNormal",  
-                #! tf & pytorch functions used have different gains in their respective formulae
             elif isinstance(m, (tf.keras.layers.BatchNormalization, tfa.layers.GroupNormalization)):
                 # nn.init.constant_(m.weight, 1)
                 # nn.init.constant_(m.bias, 0)
@@ -125,15 +123,6 @@ class ResNetFPN_8_2(tf.keras.Model):
         x3 = self.layer3(x2)  # 1/8
 
         # FPN
-        # x3_out = self.layer3_outconv(x3)
-        # x2_out = self.layer2_outconv(x2)
-        # x3_out_2x = tf.keras.layers.UpSampling2D(size=2, interpolation = 'bilinear', data_format='channels_last')(x3_out)
-        # padding=tf.constant([[0,0],[2,2],[2,2],[0,0]])  
-        # x2_out = self.layer2_outconv2(tf.pad(x2_out, padding, "CONSTANT")+ tf.pad(x3_out_2x, padding, "CONSTANT"))
-        # x1_out = self.layer1_outconv(x1)
-        # x2_out_2x = tf.keras.layers.UpSampling2D(size=2, interpolation = 'bilinear', data_format='channels_last')(x2_out)
-        # x1_out = self.layer1_outconv2(tf.pad(x1_out, padding, "CONSTANT")+ tf.pad(x2_out_2x, padding, "CONSTANT"))
-
         x3_out = self.layer3_outconv(x3)
         x3_out_2x=tf.image.resize(x3_out,[x3_out.shape[1]*2,x3_out.shape[2]*2]) # should be [1, 256, 120, 160]
         x2_out = self.layer2_outconv(x2) # should be [1, 256, 120, 160]
