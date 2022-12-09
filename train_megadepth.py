@@ -16,7 +16,7 @@ except:
 from src.loftr.LoFTR_TF import LoFTR
 from src.training.supervisionTF import compute_supervision_coarse, compute_supervision_fine
 from src.training.loftr_lossTF import LoFTRLoss
-from src.training.datasets.LoadDataMD import MegadepthData
+from src.training.dataloaders.megadepth.LoadDataMD import MegadepthData
 from src.loftr.utils.plotting_TF import make_matching_figure
 from src.configs.getConfig import giveConfig
 # tf.config.run_functions_eagerly(True)
