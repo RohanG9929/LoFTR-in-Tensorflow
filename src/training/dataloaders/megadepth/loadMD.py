@@ -8,8 +8,8 @@ from tqdm import tqdm
 
 root_dir = './src/training/datasets/megadepth_test/'
 megadepthPath = './src/training/datasets/megadepth_test/megadepth_test_1500_scene_info/'
-allNPZ = [np.load(''+megadepthPath+'0015_0.1_0.3.npz',allow_pickle=True)
-        # np.load(''+megadepthPath+'0015_0.3_0.5.npz',allow_pickle=True),
+allNPZ = [np.load(''+megadepthPath+'0015_0.1_0.3.npz',allow_pickle=True),
+        np.load(''+megadepthPath+'0015_0.3_0.5.npz',allow_pickle=True),
         # np.load(''+megadepthPath+'0022_0.1_0.3.npz',allow_pickle=True),
         # np.load(''+megadepthPath+'0022_0.3_0.5.npz',allow_pickle=True),
         # np.load(''+megadepthPath+'0022_0.5_0.7.npz',allow_pickle=True)
@@ -163,13 +163,15 @@ def loadMD(data,idx):
 
 
 
-reduce_data_size = 1
+reduce_data_size = 10
 
 def read_data(batch_size):
+    finalData = {}
     scenes=[]
     for data in tqdm(allNPZ,desc='Loading Scenes'):
-        for i in range(28):
-            if i==0 or len(finalData)==0:
+        for i in tqdm(range(int(len(data['pair_infos'])/reduce_data_size)),desc='Loading Scenes'):
+            this_i = i+1
+            if len(finalData)==0:
                 finalData = loadMD(data,i)
             else:
                 newData = loadMD(data,i)
@@ -182,10 +184,11 @@ def read_data(batch_size):
                 finalData['image1'] = tf.concat((finalData['image1'],newData['image1']),axis=0)
                 finalData['depth1'] = tf.concat((finalData['depth1'],newData['depth1']),axis=0)
                 finalData['scale0'] = tf.concat((finalData['scale0'],newData['scale0']),axis=0)
-                finalData['scale1'] = tf.concat((finalData['scale1'],newData['scale1']),axis=0)  
-            if i%(batch_size-1)==0 and i!=0:
+                finalData['scale1'] = tf.concat((finalData['scale1'],newData['scale1']),axis=0)    
+            if this_i%(batch_size)==0:
                 scenes.append(finalData)
                 finalData = {}
+                
     return scenes
 
 
