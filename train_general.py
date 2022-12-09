@@ -23,23 +23,18 @@ from src.configs.getConfig import giveConfig
 # tf.config.run_functions_eagerly(True)
 
 class trainer():
-    def __init__(self,num_devices, strategy: tf.distribute.Strategy):
-        self.strategy = strategy
+    def __init__(self):
         self.config,self._config = giveConfig()
-        self.num_devices = num_devices
         self.runningLoss = []
         self.dataDict = {}
-
-        with self.strategy.scope():
-            self.A_optimizer=tf.keras.optimizers.Adam(learning_rate=0.001)
-            self.matcher=LoFTR(config=self._config['loftr']) 
-            self.modelLoss=LoFTRLoss(self._config) 
+        self.learning_rate = 0.0001
+        self.warmupMultiplier = 0.0003
+        self.A_optimizer=tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
+        self.matcher=LoFTR(config=self._config['loftr']) 
+        self.modelLoss=LoFTRLoss(self._config) 
          
     def getNewestData(self):
         return self.dataDict
-
-    def getNumDevices(self):
-        return self.num_devices
 
     def saveWeights(self,checkpointPath):
         self.matcher.save_weights(checkpointPath)
@@ -47,7 +42,7 @@ class trainer():
     def loadWeights(self,checkpointPath):
         self.matcher.load_weights(checkpointPath)
 
-    def train_step(self, input):
+    def train_step(self, input, epoch):
         '''
         data is a dictionary containing
         '''
@@ -64,13 +59,6 @@ class trainer():
 
         return lossData['loss'],lossData
 
-    # @tf.function
-    def distributed_train_step(self, currentBatch):
-        batchLoss,dataDict = self.strategy.run(self.train_step, args=([currentBatch]))
-        # self.runningLoss.append(batchLoss)
-        self.dataDict = dataDict
-        rbatchLoss = self.strategy.experimental_local_results(batchLoss)
-        return rbatchLoss
 
     def singleTest(self,imagePaths, outPath):
         img0_raw = cv.resize(cv.imread(imagePaths[0], cv.IMREAD_GRAYSCALE), (640, 480))
@@ -98,38 +86,25 @@ class trainer():
 def train(train_ds, trainer, epoch: int):
   epochLoss = 0.0
   for currentBatch in tqdm(train_ds,desc='Running Epoch '+str(epoch+ 1)):
-    result = trainer.distributed_train_step(currentBatch)
-    # logger.info(f'running...')
-    for idx in range(trainer.getNumDevices()):
-        epochLoss += (result[idx])
-
+    result,_ = trainer.train_step(currentBatch,epoch)
+    epochLoss += (result)
   epochLoss = float(tf.math.reduce_sum(epochLoss)/(len(train_ds)))
   return epochLoss
 
 
 def main(epochs):
-    tf.keras.backend.clear_session()
 
-    np.random.seed(1234)
-    tf.random.set_seed(1234)
-
-    # initialize tf.distribute.MirroredStrategy
-    strategy = tf.distribute.MirroredStrategy(devices=None,cross_device_ops=tf.distribute.HierarchicalCopyAllReduce())
-    num_devices = strategy.num_replicas_in_sync
-    # args.global_batch_size = num_devices * args.batch_size
-    logger.info(f'Number of devices: {num_devices}')
-
-    # initialize TensorBoard summary helper
+    #Initialize Data Scenes summary helper
     t1 = time()
-    scenes = read_data(batch_size=4) #scenes must be a list of dictionaries
+    scenes = read_data(batch_size=4)
     t2 = time()
     logger.info(f"Data Loaded {len(scenes)} scenes in {t2-t1} seconds")
 
     # scenes = strategy.experimental_distribute_dataset(scenes)
 
-    myTrainer = trainer(num_devices,strategy=strategy)
+    myTrainer = trainer()
     try:
-        myTrainer.loadWeights("./weights/other/cp_other.ckpt")
+        myTrainer.loadWeights("./weights/NYU/cp_other.ckpt")
     except:
         logger.warning(f'No previous weights to load!')
 
@@ -144,6 +119,7 @@ def main(epochs):
         allLoss.append(currentLoss)
         end = time()
         logger.info(f'Time taken for Epoch {epoch+1} = {end-start}')
+
 
         myTrainer.saveWeights("./weights/other/cp_other.ckpt")
     print(allLoss)
