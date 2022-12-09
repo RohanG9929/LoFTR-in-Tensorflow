@@ -23,18 +23,23 @@ from src.configs.getConfig import giveConfig
 # tf.config.run_functions_eagerly(True)
 
 class trainer():
-    def __init__(self):
+    def __init__(self,num_devices, strategy: tf.distribute.Strategy):
+        self.strategy = strategy
         self.config,self._config = giveConfig()
+        self.num_devices = num_devices
         self.runningLoss = []
         self.dataDict = {}
-        self.learning_rate = 0.0001
-        self.warmupMultiplier = 0.0003
-        self.A_optimizer=tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
-        self.matcher=LoFTR(config=self._config['loftr']) 
-        self.modelLoss=LoFTRLoss(self._config) 
+
+        with self.strategy.scope():
+            self.A_optimizer=tf.keras.optimizers.Adam(learning_rate=0.001)
+            self.matcher=LoFTR(config=self._config['loftr']) 
+            self.modelLoss=LoFTRLoss(self._config) 
          
     def getNewestData(self):
         return self.dataDict
+
+    def getNumDevices(self):
+        return self.num_devices
 
     def saveWeights(self,checkpointPath):
         self.matcher.save_weights(checkpointPath)
@@ -42,12 +47,11 @@ class trainer():
     def loadWeights(self,checkpointPath):
         self.matcher.load_weights(checkpointPath)
 
-    def train_step(self, input,epoch):
+    def train_step(self, input):
         '''
         data is a dictionary containing
         '''
         data = input
-
         with tf.GradientTape() as tape:
             superVisionData = compute_supervision_coarse(data,self.config)#Ground Truth generation
             modelData = self.matcher(superVisionData, training = True)
@@ -58,16 +62,15 @@ class trainer():
         self.A_optimizer.apply_gradients(zip(grads, self.matcher.trainable_weights))
         # print("Weights Updated")
 
-        #Train with changing learning rate
-        # if (epoch+1) <= 3:
-        #     self.learning_rate += self.warmupMultiplier
-        #     self.A_optimizer.learning_rate.assign(self.learning_rate)
-        # if (epoch+1)%8==0:
-        #     self.learning_rate /= 2
-        #     self.A_optimizer.learning_rate.assign(self.learning_rate)
-
         return lossData['loss'],lossData
 
+    # @tf.function
+    def distributed_train_step(self, currentBatch):
+        batchLoss,dataDict = self.strategy.run(self.train_step, args=([currentBatch]))
+        # self.runningLoss.append(batchLoss)
+        self.dataDict = dataDict
+        rbatchLoss = self.strategy.experimental_local_results(batchLoss)
+        return rbatchLoss
 
     def singleTest(self,imagePaths, outPath):
         img0_raw = cv.resize(cv.imread(imagePaths[0], cv.IMREAD_GRAYSCALE), (640, 480))
@@ -94,24 +97,37 @@ class trainer():
 
 def train(train_ds, trainer, epoch: int):
   epochLoss = 0.0
-  for currentBatch in tqdm(train_ds,desc='Running Epoch '+str(epoch+1)):
-    result,_ = trainer.train_step(currentBatch,epoch)
-    epochLoss += (result)
+  for currentBatch in tqdm(train_ds,desc='Running Epoch '+str(epoch+ 1)):
+    result = trainer.distributed_train_step(currentBatch)
+    # logger.info(f'running...')
+    for idx in range(trainer.getNumDevices()):
+        epochLoss += (result[idx])
+
   epochLoss = float(tf.math.reduce_sum(epochLoss)/(len(train_ds)))
   return epochLoss
 
 
 def main(epochs):
+    tf.keras.backend.clear_session()
 
-    #Initialize Data Scenes summary helper
+    np.random.seed(1234)
+    tf.random.set_seed(1234)
+
+    # initialize tf.distribute.MirroredStrategy
+    strategy = tf.distribute.MirroredStrategy(devices=None)#,cross_device_ops=tf.distribute.HierarchicalCopyAllReduce())
+    num_devices = strategy.num_replicas_in_sync
+    # args.global_batch_size = num_devices * args.batch_size
+    logger.info(f'Number of devices: {num_devices}')
+
+    # initialize scenes as a lsit of dictionaries
     t1 = time()
-    scenes = read_data(batch_size=4)
+    scenes = read_data(batch_size=4) 
     t2 = time()
     logger.info(f"Data Loaded {len(scenes)} scenes in {t2-t1} seconds")
 
     # scenes = strategy.experimental_distribute_dataset(scenes)
 
-    myTrainer = trainer()
+    myTrainer = trainer(num_devices,strategy=strategy)
     try:
         myTrainer.loadWeights("./weights/other/cp_other.ckpt")
     except:
@@ -129,13 +145,12 @@ def main(epochs):
         end = time()
         logger.info(f'Time taken for Epoch {epoch+1} = {end-start}')
 
-
         myTrainer.saveWeights("./weights/other/cp_other.ckpt")
     print(allLoss)
     
 
     myTrainer.singleTest(["./other/scene0738_00_frame-000885.jpg",
-    "./other/scene0738_00_frame-001065.jpg"],"./src/training/figs/matches_general.jpg")
+    "./other/scene0738_00_frame-001065.jpg"],"./src/training/figs/matches_miniMD.jpg")
 
 if __name__ == '__main__':
 #   main(parser.parse_args())
