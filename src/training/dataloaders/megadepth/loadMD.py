@@ -168,7 +168,7 @@ reduce_data_size = 1
 def read_data(batch_size):
     scenes=[]
     for data in tqdm(allNPZ,desc='Loading Scenes'):
-        for i in range(20):
+        for i in range(28):
             if i==0 or len(finalData)==0:
                 finalData = loadMD(data,i)
             else:
