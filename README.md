@@ -8,7 +8,7 @@ In an attempt to make the LoFTR [[1]](#1) algorithm more accessible, we have rei
 
 git clone link
 
-cd loftr_tf
+cd LoFTR-in-Tensorflow
 
 conda env create -f environment.yaml
 
@@ -16,24 +16,13 @@ conda env create -f environment.yaml
 
 conda activate loftr_tf
 
-python3 demo_loftr_tf.py --image1 path/image1.jpg --image2 path/image2.jpg
+### Demo Notebook ###
+
+Run running.ipynb to see a visualisation of the LoFTR feature matcher running with some demo images.
 
 ## Training
 
-First, download the respective datasets from the links below:
-megadepth (download the sfm AND the main file)
-scannet (please request access via their github)
-NYU Depth V2 (download _)
-
-Download the indices from the original LoFTR paper.
-
-Place each dataset in "file path to datasets folder"
-
-place each indices folder in "file path to indices folder"
-
-Download the weights from "our drive link"
-
-python3 training_loftr_tf.py --dataset= "MegaDepth/Scannet/NYUDepth"
+See the  [Training](./docs/Training.md) readme.
 
 ## Next Steps
 
