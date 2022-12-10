@@ -259,9 +259,13 @@ class MegadepthData():
             scale0 (tf.Tensor): [N, 2]
             }
         """
- 
+        # stringlist_ofscenes = []
+        # with open(osp.join(self.root_dir, 'megadepth_indices/trainvaltest_list/train_list.txt')) as file:
+        #     while (line := file.readline().rstrip()):
+        #         stringlist_ofscenes.append(line)
+
         list_of_batches = []
-        for _ in tqdm(range(len(numScenes)),desc='Loading Scenes'):
+        for _ in tqdm(range((numScenes)),desc='Loading Scenes'):
             sceneName = self.stringlist_ofscenes[np.random.randint(0,len(self.stringlist_ofscenes))]
             scene_data = np.load(self.npz_dir+sceneName+'.npz',allow_pickle=True)
 
@@ -270,12 +274,13 @@ class MegadepthData():
         
             # scene_by_covisibility_score=[]
             # sample_inds = np.random.randint(0,len(scene_data['pair_infos']), 100)
-
-            for i in range(100):
-                if i==0 or len(finalData)==0:
-                    finalData = self.loadMD(scene_data,i,self.root_dir)
+            finalData = {}
+            for i,idx in enumerate(range(56)):
+                this_i = i+1
+                if len(finalData)==0:
+                    finalData = self.loadMD(scene_data,idx)
                 else:
-                    newData = self.loadMD(scene_data,i,self.root_dir)
+                    newData = self.loadMD(scene_data,idx)
                     finalData['image0'] = tf.concat((finalData['image0'],newData['image0']),axis=0)
                     finalData['depth0'] = tf.concat((finalData['depth0'],newData['depth0']),axis=0)
                     finalData['T_0to1'] = tf.concat((finalData['T_0to1'],newData['T_0to1']),axis=0)
@@ -286,7 +291,7 @@ class MegadepthData():
                     finalData['depth1'] = tf.concat((finalData['depth1'],newData['depth1']),axis=0)
                     finalData['scale0'] = tf.concat((finalData['scale0'],newData['scale0']),axis=0)
                     finalData['scale1'] = tf.concat((finalData['scale1'],newData['scale1']),axis=0)    
-                if i%(batch_size-1)==0 and i!=0:
+                if this_i%(batch_size)==0:
                     list_of_batches.append(finalData)
                     finalData = {}
             #save this scene into npz

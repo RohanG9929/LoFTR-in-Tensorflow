@@ -16,7 +16,9 @@ except:
 from src.loftr.LoFTR_TF import LoFTR
 from src.training.supervisionTF import compute_supervision_coarse, compute_supervision_fine
 from src.training.loftr_lossTF import LoFTRLoss
-from src.training.dataloaders.megadepth.LoadDataMD import MegadepthData
+# from src.training.datasets.LoadDataMD import read_fullMD_data
+from src.training.datasets.LoadDataMD import MegadepthData
+from src.training.datasets.loadMD import read_data
 from src.loftr.utils.plotting_TF import make_matching_figure
 from src.configs.getConfig import giveConfig
 # tf.config.run_functions_eagerly(True)
@@ -31,9 +33,16 @@ class trainer():
         self.A_optimizer=tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
         self.matcher=LoFTR(config=self._config['loftr']) 
         self.modelLoss=LoFTRLoss(self._config) 
+        self.checkpoint = tf.train.Checkpoint(self.matcher)
          
     def getNewestData(self):
         return self.dataDict
+
+    def saveCheck(self,save_path):
+        self.checkpoint.save(save_path)
+
+    def restoreCheck(self,save_path):
+        self.checkpoint.restore(save_path)
 
     def saveWeights(self,checkpointPath):
         self.matcher.save_weights(checkpointPath)
@@ -56,10 +65,12 @@ class trainer():
         grads = tape.gradient(lossData['loss'], self.matcher.trainable_weights, unconnected_gradients='zero')
         self.A_optimizer.apply_gradients(zip(grads, self.matcher.trainable_weights))
         # print("Weights Updated")
+
+        #Train with changing learning rate
         # if (epoch+1) <= 3:
         #     self.learning_rate += self.warmupMultiplier
         #     self.A_optimizer.learning_rate.assign(self.learning_rate)
-        # if epoch%8==0:
+        # if (epoch+1)%8==0:
         #     self.learning_rate /= 2
         #     self.A_optimizer.learning_rate.assign(self.learning_rate)
 
@@ -89,38 +100,28 @@ class trainer():
 
 
 
-def train(train_ds,numScenes, trainer, epoch: int):
-    summedLoss = []
-    for scene in tqdm((numScenes),desc='Running Epoch '+str(epoch+ 1)):
-        epochLoss = 0.0
-        currentBatchNum = scene
-        currentBatchLList = train_ds.read_scene(4,currentBatchNum,52)
-        for currentBatch in tqdm(currentBatchLList,desc='Training Scene '+str(scene)):
-            result,_ = trainer.train_step(currentBatch,epoch)
-            epochLoss += (result)
-        epochLoss = float(tf.math.reduce_sum(epochLoss)/(len(currentBatchLList)))
-        logger.info(f'Scene Loss = {epochLoss}')
-        summedLoss.append(epochLoss)
-    
-    r_epochLoss = sum(summedLoss)/len(summedLoss)#float(tf.math.reduce_sum(epochLoss)/(len(numScenes)))
-    return r_epochLoss
+def train(train_ds, trainer, epoch: int):
+  epochLoss = 0.0
+  for currentBatch in tqdm(train_ds,desc='Running Epoch '+str(epoch+1)):
+    result,_ = trainer.train_step(currentBatch,epoch)
+    epochLoss += (result)
+  epochLoss = float(tf.math.reduce_sum(epochLoss)/(len(train_ds)))
+  return epochLoss
 
 
 def main(epochs):
 
+    #Initialize Data Scenes summary helper
+    t1 = time()
+    root_dir = './src/training/datasets/megadepth/'
+    npz_dir= os.path.join(root_dir,'megadepth_indices/scene_info_0.1_0.7/')
+    myData = MegadepthData(root_dir,npz_dir)
+    scenes = myData.read_fullMD_data(batch_size=4,numScenes=8)
+    t2 = time()
+    logger.info(f"Data Loaded {len(scenes)} batches in {t2-t1} seconds")
 
     # scenes = strategy.experimental_distribute_dataset(scenes)
     myTrainer = trainer()
-    root_dir = './src/training/datasets/megadepth/'
-    npz_dir= os.path.join(root_dir,'megadepth_indices/scene_info_0.1_0.7/')
-    # scenes = strategy.experimental_distribute_dataset(scenes)
-    myData = MegadepthData(root_dir,npz_dir)
-    numScenes = np.random.randint(0,myData.giveNumScenes(),5)
-
-    try:
-        myTrainer.loadWeights("./weights/NYU/cp_other.ckpt")
-    except:
-        logger.warning(f'No previous weights to load!')
 
     #Begin Training
     allLoss = []
@@ -128,20 +129,20 @@ def main(epochs):
         logger.info(f'Epoch {epoch + 1:03d}/{epochs:03d}')
 
         start = time()
-        currentLoss = train(myData, numScenes, myTrainer, epoch)
+        currentLoss = train(scenes, myTrainer, epoch)
         logger.info(f'Current Loss = {currentLoss}')
         allLoss.append(currentLoss)
         end = time()
         logger.info(f'Time taken for Epoch {epoch+1} = {end-start}')
 
 
-        myTrainer.saveWeights("./weights/new_megadepth/cp_other.ckpt")
+        myTrainer.saveWeights("./weights/megadepth/cp_megadepth.ckpt")
     print(allLoss)
     
 
-    myTrainer.singleTest(["./other/scene0738_00_frame-000885.jpg",
-    "./other/scene0738_00_frame-001065.jpg"],"./src/training/figs/matches_miniMD.jpg")
+    myTrainer.singleTest(["./other/mdtest1.jpg",
+    "./other/mdtest2.jpg"],"./src/training/figs/matches_megadepth.jpg")
 
 if __name__ == '__main__':
 #   main(parser.parse_args())
-    main(30)
+    main(epochs=30)
