@@ -22,7 +22,7 @@
 
   Download the indices from the original LoFTR paper. 
 
-  [Megadepth Indices]([https://www.cs.cornell.edu/projects/megadepth/](https://drive.google.com/drive/folders/1DOcOPZb3-5cWxLqn256AhwUVjBPifhuf?usp=sharing) "Megadepth Indices")
+  [Megadepth Indices](https://drive.google.com/drive/folders/1DOcOPZb3-5cWxLqn256AhwUVjBPifhuf?usp=sharing "Megadepth Indices")
 
   After opening the link, the indices are located in LoFTR/train-data/megadepth_indices.tar
 
