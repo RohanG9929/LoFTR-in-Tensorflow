@@ -1,0 +1,2 @@
+model_checkpoint_path: "cp_SCANNET_big.ckpt"
+all_model_checkpoint_paths: "cp_SCANNET_big.ckpt"
