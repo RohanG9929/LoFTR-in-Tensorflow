@@ -4,6 +4,12 @@ In an attempt to make the LoFTR [[1]](#1) algorithm more accessible, we have rei
 
 ## Comparison
 
+Below is a comparison of the original LoFTR feature detector (left), and our reimplementation (right)
+<img width="739" alt="Screen Shot 2022-12-10 at 1 02 16 PM" src="https://user-images.githubusercontent.com/103215628/206869093-ceb952d8-0804-4c7c-aa0c-5992d2cf422e.png"><img width="737" alt="Screen Shot 2022-12-10 at 1 02 23 PM" src="https://user-images.githubusercontent.com/103215628/206869097-229f213d-c249-4c79-ac99-35083e17f1d9.png">
+
+
+It is clear to see that our implementation is in need of more training. Due to time and computing resource constraints a full training could not be executed. Hence, the difference in results.
+
 ## Install
 
 git clone link
