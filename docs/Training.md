@@ -1,6 +1,6 @@
 # Training
 
-
+Below are the steps to run 
 
 
 ## Megadepth
@@ -16,7 +16,8 @@
 
 2. Move datasets to correct folder
 
-  Move both the v1 and SfM datasets into /LoFTR-in-Tensorflow/src/training/datasets/megadepth
+  Move both the v1 and SfM datasets into 
+  "/LoFTR-in-Tensorflow/src/training/datasets/megadepth"
 
 3. Download Indicies
 
@@ -24,14 +25,20 @@
 
   [Megadepth Indices](https://drive.google.com/drive/folders/1DOcOPZb3-5cWxLqn256AhwUVjBPifhuf?usp=sharing "Megadepth Indices")
 
-  After opening the link, the indices are located in LoFTR/train-data/megadepth_indices.tar
+  After opening the link, the indices are located in "LoFTR/train-data/megadepth_indices.tar"
 
 4. Move indices to correct folder
 
-  Untar the indices folder and also move it to the /LoFTR-in-Tensorflow/src/training/datasets/megadepth folder
+  Untar the indices folder and also move it to 
+  "/LoFTR-in-Tensorflow/src/training/datasets/megadepth"
 
 
-5. 
+5. Run Training File
+
+Currently the training file is a CPU only training file. We are working on a GPU training file that will utilise multiple GPU's
+
+The weights for this training will be saved into "./weights/megadepth/cp_megadepth.ckpt"
+
 
 ## Scannet
 
