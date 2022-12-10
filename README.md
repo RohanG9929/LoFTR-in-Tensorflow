@@ -8,7 +8,7 @@ In an attempt to make the LoFTR [[1]](#1) algorithm more accessible, we have rei
 
 git clone link
 
-cd loftr_tf
+cd LoFTR-in-Tensorflow
 
 conda env create -f environment.yaml
 
@@ -23,7 +23,8 @@ Run running.ipynb to see a visualisation of the LoFTR feature matcher running wi
 ## Training
 
 First, download the respective datasets from the links below:
-megadepth (download the sfm AND the main file)
+
+megadepth [Megadepth]((https://www.cs.cornell.edu/projects/megadepth/) "Megadepth") (download the sfm AND the main file)
 scannet (please request access via their github)
 NYU Depth V2 (download _)
 
