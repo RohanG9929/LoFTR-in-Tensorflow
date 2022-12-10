@@ -6,7 +6,7 @@ In an attempt to make the LoFTR [[1]](#1) algorithm more accessible, we have rei
 
 Below is a comparison of the original LoFTR feature detector (left), and our reimplementation (right)
 
-<img src="https://user-images.githubusercontent.com/103215628/206869093-ceb952d8-0804-4c7c-aa0c-5992d2cf422e.png" width="240" height="320"> <img src="https://user-images.githubusercontent.com/103215628/206869097-229f213d-c249-4c79-ac99-35083e17f1d9.png" width="240" height="320">
+<img src="https://user-images.githubusercontent.com/103215628/206869093-ceb952d8-0804-4c7c-aa0c-5992d2cf422e.png" width="480" height="320"> <img src="https://user-images.githubusercontent.com/103215628/206869097-229f213d-c249-4c79-ac99-35083e17f1d9.png" width="480" height="320">
 
 
 
