@@ -24,7 +24,9 @@ Run running.ipynb to see a visualisation of the LoFTR feature matcher running wi
 
 First, download the respective datasets from the links below:
 
-megadepth [Megadepth]((https://www.cs.cornell.edu/projects/megadepth/) "Megadepth") (download the sfm AND the main file)
+[Named Link](http://www.google.fr/ "Named link title")
+
+megadepth  (download the sfm AND the main file)
 scannet (please request access via their github)
 NYU Depth V2 (download _)
 
