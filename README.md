@@ -16,7 +16,9 @@ conda env create -f environment.yaml
 
 conda activate loftr_tf
 
-python3 demo_loftr_tf.py --image1 path/image1.jpg --image2 path/image2.jpg
+### Demo Notebook ###
+
+Run running.ipynb to see a visualisation of the LoFTR feature matcher running with some demo images.
 
 ## Training
 
