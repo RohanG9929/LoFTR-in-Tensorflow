@@ -116,7 +116,7 @@ def main(epochs):
     root_dir = './src/training/datasets/megadepth/'
     npz_dir= os.path.join(root_dir,'megadepth_indices/scene_info_0.1_0.7/')
     myData = MegadepthData(root_dir,npz_dir)
-    scenes = myData.read_fullMD_data(batch_size=4,numScenes=8)
+    scenes = myData.read_fullMD_data(batch_size=4,numScenes=368)
     t2 = time()
     logger.info(f"Data Loaded {len(scenes)} batches in {t2-t1} seconds")
 
