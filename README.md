@@ -22,7 +22,15 @@ Run running.ipynb to see a visualisation of the LoFTR feature matcher running wi
 
 ## Training
 
-See the  [Training](./docs/Training.md) readme.
+Training was performed on 3 datasets. 
+
+Megadepth [[2]](#2)
+
+Scannet [[3]](#3)
+
+NYU Depth V2 [[4]](#4)
+
+See the [Training](./docs/Training.md) readme for details.
 
 ## Next Steps
 
@@ -40,11 +48,11 @@ J. Sun, Z. Shen, Y. Wang, H. Bao, and X. Zhou (2021).
 LoFTR: Detector-free local feature matching with transformers
 
 <a id="2">[[2]](#2)</a> 
-Zhengqi Li and Noah Snavely (2018)
+Zhengqi Li and Noah Snavely (2018).
 MegaDepth: Learning Single-View Depth Prediction from Internet Photos
 
 <a id="3">[[3]](#3)</a> 
-Dai, Angela and Chang, Angel X. and Savva, Manolis and Halber, Maciej and Funkhouser, Thomas and Nie{\ss}ner, Matthias (2017). 
+Dai, Angela and Chang, Angel X. and Savva, Manolis and Halber, Maciej and Funkhouser, Thomas and Nießner, Matthias (2017). 
 ScanNet: Richly-annotated 3D Reconstructions of Indoor Scenes
 
 <a id="4">[[4]](#4)</a> 
