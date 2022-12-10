@@ -26,8 +26,27 @@ See the  [Training](./docs/Training.md) readme.
 
 ## Next Steps
 
+Below are a few next steps to further improve this reimplementation.
+
+1. Distrubute dataset using Tensorflows dataset builder to use multiple CPU cores to ush the data to multiple GPU's
+
+2. Optimise Tensorflows GPU multi-worker strategy to work smoothly with our model
+
+
 
 ## References
 <a id="1">[[1]](#1)</a> 
 J. Sun, Z. Shen, Y. Wang, H. Bao, and X. Zhou (2021). 
 LoFTR: Detector-free local feature matching with transformers
+
+<a id="2">[[2]](#2)</a> 
+Zhengqi Li and Noah Snavely (2018)
+MegaDepth: Learning Single-View Depth Prediction from Internet Photos
+
+<a id="3">[[3]](#3)</a> 
+Dai, Angela and Chang, Angel X. and Savva, Manolis and Halber, Maciej and Funkhouser, Thomas and Nie{\ss}ner, Matthias (2017). 
+ScanNet: Richly-annotated 3D Reconstructions of Indoor Scenes
+
+<a id="4">[[4]](#4)</a> 
+Nathan Silberman, Derek Hoiem, Pushmeet Kohli and Rob Fergus (2012). 
+Indoor Segmentation and Support Inference from RGBD Images
