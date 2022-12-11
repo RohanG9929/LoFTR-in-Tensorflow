@@ -27,7 +27,7 @@ conda activate loftr_tf
 
 ### Demo Notebook ###
 
-Run running.ipynb to see a visualisation of the LoFTR feature matcher running with some demo images.
+Run running.ipynb to see a visualisation of the LoFTR feature matcher running with our pretrained weights and some demo images.
 
 ## Training
 
