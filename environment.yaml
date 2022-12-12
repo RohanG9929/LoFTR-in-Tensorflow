@@ -1,0 +1,20 @@
+name: loftr_tf
+
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python=3.9
+  - pip
+  - pip:
+    - matplotlib
+    - opencv-contrib-python
+    - tensorflow
+    - tensorflow-addons
+    - imageio
+    - loguru
+    - einops==0.6.0
+    - numpy
+    - h5py
+    - zlib

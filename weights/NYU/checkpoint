@@ -1,0 +1,2 @@
+model_checkpoint_path: "scannet_trial64_8_5_vlr.ckpt"
+all_model_checkpoint_paths: "scannet_trial64_8_5_vlr.ckpt"
