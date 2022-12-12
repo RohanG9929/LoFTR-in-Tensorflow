@@ -41,7 +41,7 @@ class trainer():
     def loadWeights(self,checkpointPath):
         self.matcher.load_weights(checkpointPath)
 
-    def train_step(self, input,epoch):
+    def train_step(self, input, epoch):
         '''
         data is a dictionary containing
         '''
@@ -61,9 +61,9 @@ class trainer():
         # if (epoch+1) <= 3:
         #     self.learning_rate += self.warmupMultiplier
         #     self.A_optimizer.learning_rate.assign(self.learning_rate)
-        # if (epoch+1)%8==0:
-        #     self.learning_rate /= 2
-        #     self.A_optimizer.learning_rate.assign(self.learning_rate)
+        if (epoch+1)%8==0:
+            self.learning_rate /= 2
+            self.A_optimizer.learning_rate.assign(self.learning_rate)
 
         return lossData['loss'],lossData
 
@@ -100,7 +100,7 @@ def train(train_ds, trainer, epoch: int):
   return epochLoss
 
 
-def main(epochs):
+def main(epochs,loadWeights=False):
 
     #Initialize Data Scenes summary helper
     t1 = time()
@@ -109,12 +109,15 @@ def main(epochs):
     logger.info(f"Data Loaded {len(scenes)} scenes in {t2-t1} seconds")
 
     # scenes = strategy.experimental_distribute_dataset(scenes)
-
     myTrainer = trainer()
-    try:
-        myTrainer.loadWeights("./weights/other/cp_other.ckpt")
-    except:
-        logger.warning(f'No previous weights to load!')
+
+    if loadWeights:
+        try:
+            myTrainer.restoreCheck("./weights/other/cp_other.ckpt")
+            myTrainer.loadWeights("./weights/other/cp_other.ckpt")
+            logger.info(f'Weights Loaded!')
+        except:
+            logger.warning(f'No previous weights to load!')
 
     #Begin Training
     allLoss = []
@@ -128,7 +131,6 @@ def main(epochs):
         end = time()
         logger.info(f'Time taken for Epoch {epoch+1} = {end-start}')
 
-
         myTrainer.saveWeights("./weights/test/cp_test.ckpt")
     print(allLoss)
     
@@ -138,4 +140,4 @@ def main(epochs):
 
 if __name__ == '__main__':
 #   main(parser.parse_args())
-    main(30)
+    main(10)
