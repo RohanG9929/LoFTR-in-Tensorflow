@@ -48,5 +48,10 @@ scannet (please request access via their github)
 
 ## NYU Depth V2
 
+1. The NYU Depth V2 is provided in a) labeled format b) raw format. In the project, we downloaded several scenes from the raw format as it suits better our needs for the final data format. You can downlaod the dataset from the link below
+https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html
+
+
+
 
 
