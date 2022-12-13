@@ -48,8 +48,17 @@ scannet (please request access via their github)
 
 ## NYU Depth V2
 
-1. The NYU Depth V2 is provided in a) labeled format b) raw format. In the project, we downloaded several scenes from the raw format as it suits better our needs for the final data format. You can downlaod the dataset from the link below
+1. The NYU Depth V2 is provided in a) labeled format b) raw format. In the project, we downloaded several scenes from the raw format as it suits better our needs for the final data structure. the download link for the dataset is provided below.
 https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html
+
+2. After downloading the scenes, we select the corresponding ppm and pgm files from the index.txt file.
+
+3. The depth files (pgm) files are not provided in the frame of the RGB camera, and need to undergo transformation to the same frame. The toolbox provided with the dataset contains MATLAB scripts to transform the depth maps to align with the RGB frames. The download link for NYU MATLAB toolbox is provided below
+http://cs.nyu.edu/~silberman/code/toolbox_nyu_depth_v2.zip
+
+4. After transforming the depth maps, we needed to select corresponding pairs of images that respect the condition of the covisibility being between 0.4 and 0.7. Python code was developed by using SIFT features detector to select such pairs of images and the corresponding depth maps. Below is a link for the python file for this task
+
+
 
 
 
