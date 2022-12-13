@@ -54,6 +54,7 @@ https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html
 2. After downloading the scenes, we select the corresponding ppm and pgm files from the index.txt file.
 
 3. The depth files (pgm) files are not provided in the frame of the RGB camera, and need to undergo transformation to the same frame. The toolbox provided with the dataset contains MATLAB scripts to transform the depth maps to align with the RGB frames. The download link for NYU MATLAB toolbox is provided below
+
 http://cs.nyu.edu/~silberman/code/toolbox_nyu_depth_v2.zip
 
 4. After transforming the depth maps, we needed to select corresponding pairs of images that respect the condition of the covisibility being between 0.4 and 0.7. Python code was developed by using SIFT features detector to select such pairs of images and the corresponding depth maps. Below is a link for the python file for this task
