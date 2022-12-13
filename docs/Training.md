@@ -57,7 +57,9 @@ https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html
 
 http://cs.nyu.edu/~silberman/code/toolbox_nyu_depth_v2.zip
 
-4. After transforming the depth maps, we needed to select corresponding pairs of images that respect the condition of the covisibility being between 0.4 and 0.7. Python code was developed by using SIFT features detector to select such pairs of images and the corresponding depth maps. Below is a link for the python file for this task
+4. After transforming the depth maps, we needed to select corresponding pairs of images that respect the condition of the covisibility being between 0.4 and 0.7. Python code was developed by using SIFT features detector to select such pairs of images and the corresponding depth maps.
+
+
 
 
 
