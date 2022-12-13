@@ -59,6 +59,8 @@ http://cs.nyu.edu/~silberman/code/toolbox_nyu_depth_v2.zip
 
 4. After transforming the depth maps, we needed to select corresponding pairs of images that respect the condition of the covisibility being between 0.4 and 0.7. Python code was developed by using SIFT features detector to select such pairs of images and the corresponding depth maps.
 
+5- The output from the python file generates a list of dictionaries containing batch of 4 pairs of images, depth, transformation and corresponding intrinsic matrices. 
+
 
 
 
