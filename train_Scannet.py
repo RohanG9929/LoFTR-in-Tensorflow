@@ -24,7 +24,7 @@ class trainer():
         self.config,self._config = giveConfig()
         self.runningLoss = []
         self.learning_rate = 6e-3
-        self.A_optimizer=tf.keras.optimizers.Adam(learning_rate=6e-3)
+        self.A_optimizer=tf.keras.optimizers.Adam(learning_rate=6e-4)
         self.matcher=LoFTR(config=self._config['loftr']) 
         self.modelLoss=LoFTRLoss(self._config) 
          
@@ -100,7 +100,7 @@ def main(epochs):
     npz_dir = './src/training/datasets/scannet/train/'
     sens_dir = './src/training/datasets/scannet/scans/'
     intrins = './src/training/datasets/scannet/intrinsics.npz'
-    scenes = import_scannet(npz_dir,sens_dir, intrins, 0.4, 12, 4, 1)
+    scenes = import_scannet(npz_dir,sens_dir, intrins, 0.4, 64, 8, 5)
     # logger.info(scenes)
     t2 = time()
     logger.info(f"Data Loaded {len(scenes)} batches in {(t2-t1)/60} minutes")
