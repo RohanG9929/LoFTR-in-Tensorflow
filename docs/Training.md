@@ -42,9 +42,17 @@ The weights for this training will be saved into "./weights/megadepth/cp_megadep
 
 ## Scannet
 
-scannet (please request access via their github)
+scannet (please request access via their github: https://github.com/ScanNet/ScanNet)
 
+1. Using the provided download file, download all scenes, using the --type .sens optional parameter to retrieve the binary files for the model. A user should have suffecient space to store roughly 1.5TB of images. 
 
+2. Create a "scannet" folder in the "src/training/datasets/" filepath. Include the "scans" folder from step 1 in this folder.
+
+3. Download and extract the "scannet_indices" file provided in the original LoFTR paper, found here: https://drive.google.com/drive/folders/1SrIn9WJ1IuG08yh2nEvIsLftXHLrrIwh.
+
+4. Place the extracted "train/" folder and "intrinsics.npz" files into the same "scannet" folder from step 2.
+
+5. Run the scan_Train.py using the terminal or from an sbatch file.  A minimum of 256GB RAM is recommended.
 
 ## NYU Depth V2
 
