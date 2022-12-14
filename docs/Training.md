@@ -52,7 +52,9 @@ scannet (please request access via their github: https://github.com/ScanNet/Scan
 
 4. Place the extracted "train/" folder and "intrinsics.npz" files into the same "scannet" folder from step 2.
 
-5. Run the scan_Train.py using the terminal or from an sbatch file.  A minimum of 256GB RAM is recommended.
+5. create a folder for the weights in the "weights/" folder in the main directory called "scannet/"
+
+6. Run the train_scannet.py using the terminal or from an sbatch file.  A minimum of 256GB RAM is recommended.
 
 ## NYU Depth V2
 
