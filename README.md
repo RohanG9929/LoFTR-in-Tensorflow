@@ -1,6 +1,10 @@
 # LoFTR-in-Tensorflow
 
+### [Project Page](https://rohang9929.github.io/loftr-in-tensorflow/) | [Presentation](https://youtu.be/Gs9Jz6svLko)
+
 In an attempt to make the LoFTR [[1]](#1) algorithm more accessible, we have reimplmeneted it in Tensorflow.
+
+
 
 ## Comparison
 
